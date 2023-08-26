@@ -24,36 +24,27 @@ function plugin(hook, vm) {
   hook.doneEach(function () {
     modifyReposLink();
     modifyPagesLink();
-    modifyImageLink();
+    // modifyImageLink();
   });
 }
 
 function modifyReposLink() {
-  const links = document.querySelectorAll("a.Repos");
+  const links = document.querySelectorAll(".Repos");
   links.forEach((link) => {
-    const url = link.attributes.href.value;
+    link = proxyLink(link);
+    const url = link.src;
     if (isRelative(url)) {
-      link.href = blobFileDir + url;
+      link.src = blobFileDir + url;
     } else {
-      link.href = blobLink + url.slice(1);
+      link.src = blobLink + url.slice(1);
     }
   });
 }
 function modifyPagesLink() {
-  const links = document.querySelectorAll("a.Pages");
+  const links = document.querySelectorAll(".Pages");
   links.forEach((link) => {
-    const url = link.attributes.href.value;
-    if (isRelative(url)) {
-      link.href = pageFileDir + url;
-    } else {
-      link.href = pageLink + url.slice(1);
-    }
-  });
-}
-function modifyImageLink() {
-  const links = document.querySelectorAll("img.Pages");
-  links.forEach((link) => {
-    const url = link.attributes.src.value;
+    link = proxyLink(link);
+    const url = link.src;
     if (isRelative(url)) {
       link.src = pageFileDir + url;
     } else {
@@ -61,6 +52,31 @@ function modifyImageLink() {
     }
   });
 }
+
+function proxyLink(link) {
+  const attr = link.attributes.href ? "href" : "src";
+  return {
+    link,
+    get src() {
+      return link.attributes[attr].value;
+    },
+    set src(value) {
+      link[attr] = value;
+    },
+  };
+}
+
+// function modifyImageLink() {
+//   const links = document.querySelectorAll("img.Pages");
+//   links.forEach((link) => {
+//     const url = link.attributes.src.value;
+//     if (isRelative(url)) {
+//       link.src = pageFileDir + url;
+//     } else {
+//       link.src = pageLink + url.slice(1);
+//     }
+//   });
+// }
 
 function isRelative(url) {
   return url[0] != "/";
