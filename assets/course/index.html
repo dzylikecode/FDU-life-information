@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,user-scalable=0"
+    />
+    <title>课表</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="coursesTable"></div>
+    <script>
+      // the first term
+      const courses = [
+        {
+          name: "应用数学方法",
+          time: [{ day: "Tue", range: [11, 12, 13] }],
+          position: "H3409",
+          timespan: "1-16周",
+          teacher: "冷思阳",
+        },
+        {
+          name: "机械振动",
+          time: [{ day: "Wed", range: [1, 2, 3] }],
+          position: "H4208",
+          timespan: "1-16周",
+          teacher: "方虹斌",
+        },
+        {
+          name: "智能机器人前沿",
+          time: [{ day: "Mon", range: [8, 9] }],
+          position: "H3108",
+          timespan: "1-18周",
+          teacher: "甘中学",
+        },
+        {
+          name: "现代数字信号处理",
+          time: [{ day: "Thu", range: [6, 7, 8] }],
+          position: "H3408",
+          timespan: "1-18周",
+          teacher: "张晓旭",
+        },
+        {
+          name: "机器人机构学",
+          time: [{ day: "Tue", range: [3, 4, 5] }],
+          position: "H2205",
+          timespan: "1-12周",
+          teacher: "田春旭",
+        },
+        {
+          name: "现代控制理论",
+          time: [{ day: "Fri", range: [8, 9, 10] }],
+          position: "HGX403",
+          timespan: "1-16周",
+          teacher: "董志岩",
+        },
+      ];
+    </script>
+    <script src="./Timetables.js"></script>
+    <script src="./index.js"></script>
+  </body>
+</html>
