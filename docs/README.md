@@ -49,6 +49,7 @@
 
 - 课表查询: http://yjsxk.fudan.edu.cn/yjsxkapp/sys/xsxkappfudan/*default/index.do
 - <a class="Pages" target="_blank" href="./assets/pdf/选课常见问题.pdf">选课常见问题</a>
+- [新学期 | 2023 年秋季学期研究生选课指导 FAQ](https://mp.weixin.qq.com/s/HD8Tb6zFpliYQ8Ku3cONaw)
 
 <iframe class="Pages" src="./assets/course/index.html" width="100%" height="500" frameborder="0" allowfullscreen="true"></iframe>
 
