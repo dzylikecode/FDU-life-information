@@ -20,9 +20,16 @@
 - [新生攻略系列之三 | 网络办理指南](https://mp.weixin.qq.com/s/M9-V_-7aa7xl2xeDUbYLog)
 - [新生攻略系列之四 | 校园地图导览](https://mp.weixin.qq.com/s/1yKkK4Hyt1esFo3UgeZBbw)
 
+## 网站
+
+- [复旦大学迎新服务](https://freshman.fudan.edu.cn/index.action)
+- [网上办事服务大厅](https://yzsfwapp.fudan.edu.cn/new/index.html)
+- [ehall 网上办事服务大厅](https://ehall.fudan.edu.cn/ywtb-portal/fudan/index.html#/hall)
+- [统一身份认证平台](https://uis.fudan.edu.cn/authserver/login)
+
 ## 生活
 
-- 通勤: https://mp.weixin.qq.com/s/9cPApHSqlOvynRzF52FmfQ
+- 通勤: https://mp.weixin.qq.com/s/9cPApHSqlOvynRzF52FmfQ | 842 路公交车
 - [爱久指南丨生活与出行攻略](https://mp.weixin.qq.com/s/0EiWoQtT9KlGCATYWDnY0Q)
 - [爱久指南丨新生报到攻略](https://mp.weixin.qq.com/s/QBbLs5BQ4y1MUnXna3MLYw)
 - [科研青年去哪里 | 最新招聘信息汇总(8.15-8.21)](https://mp.weixin.qq.com/s/fWaOTK7YedXCfjrbR53W7Q)
@@ -41,6 +48,7 @@
 ## 课表
 
 - 课表查询: http://yjsxk.fudan.edu.cn/yjsxkapp/sys/xsxkappfudan/*default/index.do
+- <a class="Pages" target="_blank" href="./assets/pdf/选课常见问题.pdf">选课常见问题</a>
 
 <iframe class="Pages" src="./assets/course/index.html" width="100%" height="500" frameborder="0" allowfullscreen="true"></iframe>
 
