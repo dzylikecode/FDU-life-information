@@ -1,0 +1,270 @@
+.indexCenter{
+	text-align:center;
+	width: 20px;
+	padding: 5px !important;
+	/* cursor: pointer; */
+}
+
+.box-icon-but{
+	float: right;
+	line-height: 25px;
+	margin-top:0px;
+	margin-bottom:0px;
+	font-weight: normal;
+}
+
+.box-icon-but a{
+	text-decoration: none;
+}
+
+table.dataTable tbody tr.selectedStyle td{
+  background-color: #E8E8E8;
+}
+/* 
+table.dataTable tbody tr.odd.selected td {
+  background-color: #abb9d3;
+}
+ */
+table.dataTable.hover tbody tr:hover.selected,
+table.dataTable.hover tbody tr.odd:hover.selected,
+table.dataTable.hover tbody tr.even:hover.selected, table.dataTable.display tbody tr:hover.selected,
+table.dataTable.display tbody tr.odd:hover.selected,
+table.dataTable.display tbody tr.even:hover.selected {
+  background-color: #a9b7d1;
+}
+
+table.dataTable.order-column tbody tr.selected > .sorting_1,
+table.dataTable.order-column tbody tr.selected > .sorting_2,
+table.dataTable.order-column tbody tr.selected > .sorting_3, table.dataTable.display tbody tr.selected > .sorting_1,
+table.dataTable.display tbody tr.selected > .sorting_2,
+table.dataTable.display tbody tr.selected > .sorting_3 {
+  background-color: #acbad4;
+}
+
+table.dataTable.display tbody tr.odd.selected > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd.selected > .sorting_1 {
+  background-color: #a6b3cd;
+}
+table.dataTable.display tbody tr.odd.selected > .sorting_2, table.dataTable.order-column.stripe tbody tr.odd.selected > .sorting_2 {
+  background-color: #a7b5ce;
+}
+table.dataTable.display tbody tr.odd.selected > .sorting_3, table.dataTable.order-column.stripe tbody tr.odd.selected > .sorting_3 {
+  background-color: #a9b6d0;
+}
+
+table.dataTable.display tbody tr.even.selected > .sorting_1, table.dataTable.order-column.stripe tbody tr.even.selected > .sorting_1 {
+  background-color: #acbad4;
+}
+table.dataTable.display tbody tr.even.selected > .sorting_2, table.dataTable.order-column.stripe tbody tr.even.selected > .sorting_2 {
+  background-color: #adbbd6;
+}
+table.dataTable.display tbody tr.even.selected > .sorting_3, table.dataTable.order-column.stripe tbody tr.even.selected > .sorting_3 {
+  background-color: #afbdd8;
+}
+
+table.dataTable.display tbody tr:hover.selected > .sorting_1,
+table.dataTable.display tbody tr.odd:hover.selected > .sorting_1,
+table.dataTable.display tbody tr.even:hover.selected > .sorting_1, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_1,
+table.dataTable.order-column.hover tbody tr.odd:hover.selected > .sorting_1,
+table.dataTable.order-column.hover tbody tr.even:hover.selected > .sorting_1 {
+  background-color: #a1aec7;
+}
+table.dataTable.display tbody tr:hover.selected > .sorting_2,
+table.dataTable.display tbody tr.odd:hover.selected > .sorting_2,
+table.dataTable.display tbody tr.even:hover.selected > .sorting_2, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_2,
+table.dataTable.order-column.hover tbody tr.odd:hover.selected > .sorting_2,
+table.dataTable.order-column.hover tbody tr.even:hover.selected > .sorting_2 {
+  background-color: #a2afc8;
+}
+table.dataTable.display tbody tr:hover.selected > .sorting_3,
+table.dataTable.display tbody tr.odd:hover.selected > .sorting_3,
+table.dataTable.display tbody tr.even:hover.selected > .sorting_3, table.dataTable.order-column.hover tbody tr:hover.selected > .sorting_3,
+table.dataTable.order-column.hover tbody tr.odd:hover.selected > .sorting_3,
+table.dataTable.order-column.hover tbody tr.even:hover.selected > .sorting_3 {
+  background-color: #a4b2cb;
+}
+
+.table .form-group{
+	margin-bottom: 0px;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+}
+
+
+.tableToolbar{
+	margin-left: 0px;
+	margin-right: 0px;
+	border: 1px solid #ddd;
+}
+.tableToolbar .sortLabel{ 
+  	border-width: 0px 1px 0px 0px;
+  	padding: 10px 0px 10px 5px;
+  	border-style: solid;
+  	border-color: #ddd;
+  	width:80px;
+  	float: left;
+}
+
+.sortContainer{
+	float: left;
+}
+
+.sortItem{
+  	padding: 10px 20px 10px 5px;
+  	border-width: 0px 1px 0px 0px;
+  	border-style: solid;
+  	border-color: #ddd;
+  	float:left;
+  	cursor: pointer;
+}
+
+.tableToolbar .sorting{
+	background:url(../../dataTables/1.10.4/media/images/sort_both.png) no-repeat center right;
+}
+
+.tableToolbar .sorting{
+	background:url(../../dataTables/1.10.4/media/images/sort_both.png) no-repeat center right;
+}
+
+.tableToolbar .sorting_asc{
+	background: url('../../dataTables/1.10.4/media/images/sort_asc.png') no-repeat center right;
+}
+
+.tableToolbar .sorting_desc{
+	background: url('../../dataTables/1.10.4/media/images/sort_desc.png') no-repeat center right;
+}
+
+.tableToolbar .toolbarContainer{
+	float:right;
+}
+
+.tableToolbar .toolbarContainer a{
+	line-height: 40px;
+	padding: 0px 5px;
+}
+
+.jh_detail_table{
+	border:0px;
+}
+
+.jh_detail_table thead{
+	display: none
+}
+
+.jh_detail_table>tbody>tr>td{
+	border-bottom: 1px solid #ddd;
+  	border-top: 0px;
+  	border-right: 0px;
+}
+
+.jh_detail_no_border_table{
+	border:0px;
+}
+
+.jh_detail_no_border_table thead{
+	display: none
+}
+
+.jh_detail_no_border_table>tbody>tr>td{
+  	border-top: 0px;
+}
+
+/**
+ * ���������ʾ��ѡ��Ч��
+**/
+table.jh_noselected_table tbody tr.selectedStyle td{
+	background-color:transparent;
+}
+
+.jh_detail_table .bottomToolBar{
+	font-size: 90%;
+    margin-top: 5px;
+}
+
+.bottomToolBar .hrefButton{
+    margin-left: 15px;
+}
+.tableTdHrefButton{
+	padding-left: 5px;
+}
+
+.searchToolbar-margin{
+	margin-top:15px;
+}
+
+.table.jh-table-no-margin-top{
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;	
+} 
+.table.jh-table-no-side-border{
+	border-left: none;
+	border-right: none;
+}
+.tablePanel{
+	margin-bottom: 0px;
+}
+.searchFormPanel{
+	padding: 0px;
+}
+
+.jh_detail_table tbody .dListlabel{
+	display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size:85%;
+    text-align:right;
+}
+
+.list-table-wrap{
+	padding: 0px 10px;
+}
+
+/**上传表格所用样式 start**/
+.margin_cen{
+width:742px !important;
+margin:30px auto;
+}
+.modal_box{
+width:742px !important;
+height:223px !important;
+background-image:url('<%= request.getContextPath() %>/statics/sample/WHlogin/images/modal_bg.png') !important;
+}
+.modal_t{
+height:32px !important;
+padding:5px 15px !important;
+color:#fff;
+border-bottom:none;
+}
+.attachment_tip{
+width:5px;
+height:15px;
+display:inline-block;
+float:left;
+}
+.color01{
+color:#a7a7a7;
+}
+.tip_more{
+  padding: 0 10px 0 20px;
+  margin-bottom: 0px;
+}
+.tip_more a:hover{
+text-decoration:none;
+}
+.tip_more a:focus{
+outline:none;
+text-decoration:none;
+}
+.tit_border_b{
+margin-left:35px;
+font-size:16px;
+padding:0 5px;
+padding-bottom:3px;
+border-bottom:1px solid #3399cc;
+}
+.modal_box ul li{
+list-style:none;
+height:30px;
+line-height:30px;
+}
+/**上传表格所用样式 end**/

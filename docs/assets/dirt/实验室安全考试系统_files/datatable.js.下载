@@ -1,0 +1,516 @@
+/**
+ * 初始化列表，详情表的方法，
+ * ****注意，注释掉的属性为示例写法，不是默认值*******
+ * @param setting
+ * @returns 
+ */
+function initDataTable(setting){
+	var defaultSetting={
+		/*
+		"tableID":"athLevelTypeTable",//DataTable的ID
+		//表格排序，如果没有选择列则从0开始，有则从1开始，具体还是根据设置的columnsDataArray设定，使用方法见datatables API
+		//可以不设置，则为表格不设定排序
+		"order":[[1,'asc'],[2,'desc']],
+		"dataUrl":"/smjFrame/authority/authority/athLevelTypeList",//数据加载地址
+		"searchFormID":"search_form",//查询formID
+		"searchButID":"search_but",//查询按钮ID
+		"exportButID":"exportId",//导出表格数据的按钮id
+		"exportDataUrl":"/smjFrame/authority/authority/athLevelTypeList",//数据加载地址，不需要加项目路径
+		"columnsDataArray":[{ "data": "name",name:"authorityLevel.name" },{ "data": "code",name:"authorityLevel.code" }],//表格查询数据
+	    "refreshTableID":"refreshAthLevelType",//刷新按钮ID
+	    "showDetail":null,//自定义的详情打开方法，也可以自己实现单元格传递带链接的html片段，实现打开详情的方法。
+	    "showDetailColumnIndex":null,//默认在第一列上添加展示的链接，如设置则在设置的列上添加展示的链接，0为第一列。
+	    "primaryID":"",//数据在dataTable中column的data属性，需传入存储本条数据主键的column值
+	    "extraData":"",//需要传递的额外参数，可传入返回json数据的函数函数或json数据,如为函数则在提交前会合并到提交的参数中
+	    */
+	    "lengthMenu": [[10,20,50], [10,20,50]],//默认分页设置
+	    "pagination":true,//是否分页,默认为true
+	    "showStatistics":true,//是显示统计信息，对不分页的表格，数据量很少的情况下，不用显示共**条时可设置为false
+	    "detailTable":false,//是否自由行使的表格，自由行使的表格，如出访管理的列表，
+	    "order":[],//表格排序,****注意 仅用于非明细列表****
+	    "showCheckColumn":true//是否显示选择列，在详情页面或内部表格不需要选择列，则设置为false
+		//"detailToolbar":"";//当为detailTable时，配套的toolBar id 用于排序，重置表格
+	    //drawInit:myDraw; //表格加载完成后，自定义的处理操作
+	    //beforeSearch:function(){};//查询提交前的处理,可用于提交的校验 
+	};
+	var lengthMenu=setting.lengthMenu!=undefined?setting.lengthMenu:defaultSetting.lengthMenu;
+	var tableID=setting.tableID;
+	var order=setting.order!=undefined?setting.order:defaultSetting.order;
+	var dataUrl=setting.dataUrl;
+	var searchFormID=setting.searchFormID;
+	var searchButID=setting.searchButID;
+	var exportButID=setting.exportButID;
+	var exportDataUrl=setting.exportDataUrl;
+	var showDetail=setting.showDetail;
+	var drawInit=setting.drawInit;
+	var primaryID=setting.primaryID;
+	var extraData=setting.extraData;
+	if(extraData==undefined){
+		extraData={};
+	}
+//	var extraData={};
+//	if(typeof defaultExtraData=="function"){
+//		extraData=defaultExtraData;
+//	}else{//JSON 数据时可以直接合并
+//		extraData=$.extend({},defaultExtraData);
+//	}
+	var beforeSearch=(setting.beforeSearch==undefined)?function(){return true}:beforeSearch;
+//	console.log("set>>>"+extraData);
+	var pagination=setting.pagination!=undefined?setting.pagination:defaultSetting.pagination;
+	var showStatistics=setting.showStatistics!=undefined?setting.showStatistics:defaultSetting.showStatistics;
+	var detailTable=setting.detailTable!=undefined?setting.detailTable:defaultSetting.detailTable;
+	var showCheckColumn=setting.showCheckColumn!=undefined?setting.showCheckColumn:defaultSetting.showCheckColumn;
+	
+	var showDetailColumnIndex=setting.showDetailColumnIndex;
+	if(showDetailColumnIndex==undefined){
+		showDetailColumnIndex=0;
+	}
+	
+	var detailToolbar=setting.detailToolbar;
+	var firstColumnsData;
+	if(showCheckColumn){
+		firstColumnsData={
+			 "data": null,
+	      	 "defaultContent": "",
+	       	 "orderable": false,
+	       	 render:function(data, type, row, meta){
+	//           	   console.log("data::"+data.name);
+	       	   //console.log("rowData::"+row.code);
+	       	   
+	//           	   console.log("type::"+itemStart);
+	       	   
+	//           	   console.log("rowIndex::"+meta.row);
+	       	   /*
+	       	   //首行显示数据的序号
+	       	   var itemStart=$dataTable.page()*$dataTable.page.len();
+	       	   return "<a href=\"javascript:void(0);\">"+(itemStart+meta.row+1)+"</a>";
+	       	   */
+	       	   //首行显示checkbox
+	       	   return "<input id=\"jhTableCheckbox\" class=\"jhTableCheckbox\" type=\"checkbox\"/>";
+	       	 }
+	    };
+	}
+	var customColumnsDataArray=setting.columnsDataArray;
+	var columnsDataArr=new Array();
+	//显示checkbox选择列
+	if(showCheckColumn)
+		columnsDataArr=new Array(firstColumnsData);
+	
+	if(detailTable){
+		customColumnsDataArray=[{ data: "detail",name:"detail",orderable:false }];
+	}
+	columnsDataArr=columnsDataArr.concat(customColumnsDataArray);
+	
+	var refreshTableID=setting.refreshTableID;
+	
+	
+	//用于记录查询表单参数值
+	var searchFormParam=function(){
+		return (searchFormID==undefined||searchFormID=="")?[]:$("#"+searchFormID).serializeArray(); 
+	};
+	var sDom="rt<'row'<'col-sm-3'i><'col-sm-2'l><'col-sm-7'p>>";
+	var info="第 _START_ 至  _END_条,共_TOTAL_条";
+	if(!pagination){
+		if(!showStatistics)
+			sDom="rt";//显示数据条目，不显示分页，及统计
+		else{
+			sDom="rt<'row'<'col-sm-3'i><'col-sm-2'><'col-sm-7'>>";//显示数据条目，不显示分页
+			info="共_TOTAL_条";
+		}
+	}
+	
+	//初始DataTable
+	var $dataTable=$('#'+tableID).DataTable({
+	       //"sDom": "<'row'<'col-md-6'l><'col-md-6'f>r>t<'row'<'col-md-12'i><'col-md-12 center-block'p>>",
+	    //"sDom": "rt<'row'<'col-sm-3'i><'col-sm-3'l><'col-sm-6'p>>",
+//		"scrollY": "300px",
+//	    "scrollCollapse": "true",
+		"sDom": sDom,
+		"paging":pagination,
+	    "order": order,
+	    "lengthMenu": lengthMenu,
+	    //"ordering": false,
+	       /* "sPaginationType": "bootstrap", */
+	    "processing": true,
+	   	"serverSide": true,
+	   	"ajax": {
+	   		"url":SYS_CONTEXT+dataUrl,
+	   		/* "data":function(data){
+	   			data["name"]=$("#name").val();
+	   			data["code"]=$("#code").val();
+	   		} */
+	   		"data":function(data){
+//	   			console.log("data1:::")
+	   			console.log(data);
+	   			//console.log("v_search::"+v_search);
+//	   			var v_search=$("#"+searchFormID).serializeArray();	   			
+//	   			$.each(v_search,function(index,item){
+	   			console.log("data....");
+	   			var tempName=new Array();
+	   			$.each(searchFormParam(),function(index,item){
+	   				//考虑多选需要将值转为数组
+	   				if(tempName.indexOf(item.name)>-1){
+	   					data[item.name]+=","+item.value;
+	   				}else{
+	   					data[item.name]=item.value;
+	   				}
+	   				tempName[index] = item.name;
+	   			});
+//	   			console.log("extraData...");
+//	   			console.log(extraData);
+	   			if((typeof extraData=="function")){
+	   				$.each(extraData(),function(key,value){
+		   				//console.log("key:"+key);
+		   				//console.log("value"+value);
+	   					//考虑多选需要将值转为数组
+		   				data[key]=value;
+		   			});
+	   			}else{
+	   				console.log("extraData....");
+	   				console.log(extraData);
+	   				$.each(extraData,function(key,value){
+		   				//console.log("key:"+key);
+		   				//console.log("value"+value);
+	   					//考虑多选需要将值转为数组
+		   				data[key]=value;
+		   			});
+	   			}
+//	   			console.log("data2:::")
+//	   			console.log(data);
+	   		},
+	   		type:"POST"
+	   	},
+	   	"columns": columnsDataArr,
+	     "language": {
+	         "lengthMenu": "每页 _MENU_ 条",
+	         "info":info,
+	         "loadingRecords": "数据加载中...",
+	         "processing":     "处理中...",
+	         "zeroRecords":    "无数据",
+	         "paginate": {
+	             "first":      "首页",
+	             "last":       "末页",
+	             "next":       "下一页",
+	             "previous":   "上一页"
+	         },
+	         "emptyTable":     "无数据",
+	         "infoEmpty":      ""
+	     },/* ,
+	     "fnServerParams": function ( aoData ) {
+	         //aoData.push( { "name": "code", "value": "admin" } );
+	     }/* , */
+	     "pageLength": false,
+	     "searching": false
+	     /*,"sPaginationType": "listbox"*/
+	});
+	
+	//列表每次刷新清除全选按钮，并且将首列添加居中样式
+	$dataTable.on( 'draw.dt', function () {
+		$(".checkAll",$('#'+tableID)).attr("checked",false);
+		if(!detailTable){
+			if(showCheckColumn){
+				$($dataTable.column(0).nodes()).addClass('indexCenter');
+				if(showDetail){
+					$($dataTable.column(showDetailColumnIndex+1).nodes()).each(function(){
+						var $td1=$(this);
+						$td1.html("<a href=\"javascript:void(0)\">"+$td1.text()+"</a>");
+					});
+				}
+			}else{
+				if(showDetail){
+					$($dataTable.column(showDetailColumnIndex).nodes()).each(function(){
+						var $td1=$(this);
+						$td1.html("<a href=\"javascript:void(0)\">"+$td1.text()+"</a>");
+					});
+				}
+			}
+		}
+		if(drawInit)
+			drawInit();
+		/*var itemStart=$athLevelTypeTable.page()*$athLevelTypeTable.page.len();
+		$athLevelTypeTable.column(0).nodes().each( function (cell, i) {
+			 cell.innerHTML = itemStart+i+1;
+        } );*/
+    });
+	//刷新设置
+	if(refreshTableID!=undefined&&refreshTableID!=null){
+		$("#"+refreshTableID).on("click",function(){
+			
+	    	if(searchFormID!=undefined&&searchFormID!="")
+	    		$("#"+searchFormID)[0].reset();
+	    	$(".checkAll",$('#'+tableID)).attr("checked",false);
+	    	//searchFormParam=$("#"+searchFormID).serializeArray();
+	    	//console.log($userTable.settings.order);
+	    	//console.log($userTable.settings.lengthMenu);
+	    	//$userTable.state.clear();
+	    	if(detailTable){//详情表格,移除排序条件
+	    		$(".sortItem").each(function(i){
+	    			if(!$(this).hasClass("sorting")){
+	    				$(this).removeClass("sorting_asc").removeClass("sorting_desc").addClass("sorting");
+	    				$(this).removeData("order");
+	    			}
+	    			//extraData=null;
+		    	});
+	    	}
+	    	if(order!=null&&order.size>0)
+	    		$dataTable.order(order).draw();
+	    	else
+	    		$dataTable.draw();
+	    });
+	}
+    
+	//表格点击事件
+//	if(showCheckColumn){
+		$('#'+tableID+' tbody').on('click','tr',function(event){
+	    	/*if ($(this).hasClass('selected') ) {
+	            $(this).removeClass('selected');
+	        }else {
+	        	$athLevelTypeTable.$('tr.selected').removeClass('selected');
+	            $(this).addClass('selected');
+	        }*/
+	    	if($dataTable.data().length>0){
+	    		var $target = $((event.target)?event.target:event.srcElement);
+//	        	console.log($target.html());
+//	        	console.log($(this).children().get(0));
+	    		
+	        	var $indexTD=null;
+	        	if(showCheckColumn){
+	        		$indexTD=$(this).children("td:eq("+(showDetailColumnIndex+1)+")");
+	        	}else{
+	        		$indexTD=$(this).children("td:eq("+showDetailColumnIndex+")");
+	        	}
+//	        	var $indexTDLink=$(this).children("td:eq(0)").find("a");
+//	        	console.log("targetName:::"+$target.get(0).tagName.toUpperCase());
+	        	if(showDetail&&$target.parent().is($indexTD)&&$target.get(0).tagName.toUpperCase()=='A'){//详情
+	        		console.log('td0...');
+//	        		console.log($athLevelTypeTable.rows($(this)).data()[0].code);
+//	        		showAthLevelType($dataTable.rows($(this)).data()[0].code);
+	        		showDetail($dataTable.rows($(this)).data()[0][primaryID]);
+	        	}else{
+	        		console.log("$target.get(0).tagName...");
+	        		console.log($target.get(0).tagName.toUpperCase());
+	        		if(!$target.is(".jhTableCheckbox")){
+	        			$('#'+tableID+' tbody tr').each(function(index){
+		        			console.log("tr each");
+	                    	if($(this).find($target).size()>0){
+	                    		if ( $(this).hasClass('selectedStyle') ) {
+	                    			$dataTable.$('tr.selectedStyle').removeClass('selectedStyle');
+	        	                    $(this).removeClass('selectedStyle');
+	        	                }else {
+	        	                	$dataTable.$('tr.selectedStyle').removeClass('selectedStyle');
+	        	                    $(this).addClass('selectedStyle');
+	        	                }
+	                    	}
+	                    });
+	        		}
+	        	}
+	        	//其他实现参考
+	        	/*else if($target.is($indexTD)){
+	        		$(this).toggleClass('selected');
+	        	}*//*else if($target.get(0).tagName.toUpperCase()=='TD'){
+	        		console.log('td1...');
+	        		var rowIndex=$dataTable.cell($target).index().row;
+	        		$dataTable.$('tr.selectedStyle').removeClass('selectedStyle');
+                    $(this).addClass('selectedStyle');
+                    
+//	        		if ( $(this).hasClass('selected') ) {
+//	                    $(this).removeClass('selected');
+//	                    $('#'+tableID+' tbody tr').eq(rowIndex).find(".jhTableCheckbox").prop("checked",false);
+//	                }else {
+//	                	$dataTable.$('tr.selected').removeClass('selected');
+//	                    $(this).addClass('selected');
+//	                    $('#'+tableID+' tbody tr').eq(rowIndex).find(".jhTableCheckbox").prop("checked",true);
+//	                }
+	        	}*/
+	        	
+	    	}
+	    });
+		
+		$('#'+tableID+' tbody').on('click','.jhTableCheckbox',function(){
+			var rowIndex=$dataTable.cell($(this).parent()).index().row;
+			var $tr=$dataTable.row(rowIndex).nodes().to$();
+			if($(this).prop("checked")){
+				console.log("prop checked");
+				$tr.addClass('selected');
+				$tr.addClass('selectedStyle');
+			}else{
+				console.log("prop unchecked");
+				$tr.removeClass('selected');
+				$tr.removeClass('selectedStyle');
+			}
+			/*
+			if ( $tr.hasClass('selected') ) {
+				console.log('td2...');
+				$tr.removeClass('selected');
+            }else {
+            	console.log('td3...');
+            	$tr.addClass('selected');
+            }
+			*/
+		});
+		
+//	}
+	
+	//详情表格可以设置排序
+	if(detailTable){
+		if(detailToolbar){
+			$(".sortItem",$("#"+detailToolbar)).click(function(){
+		    	var $sort=$(this);
+		    	$(".sortItem").each(function(i){
+		    		if($(this).attr("role")!=$sort.attr("role")){
+		    			if(!$(this).hasClass("sorting"))
+		    				$(this).removeClass("sorting_asc").removeClass("sorting_desc").addClass("sorting");
+		    			$(this).removeData("order");
+		    		}
+		    	});
+		    	var name=$(this).attr("role");
+		    	var base_order=$sort.data("order");
+		    	if(base_order==undefined){
+		    		$sort.data("order",ASC);
+		    		$sort.removeClass("sorting").addClass("sorting_asc");
+		    	}else {
+		    		if(base_order==ASC){
+		    			$sort.data("order",DESC);
+		    			$sort.removeClass("sorting_asc").addClass("sorting_desc");
+		    		}else{
+		    			$sort.data("order",ASC);
+		    			$sort.removeClass("sorting_desc").addClass("sorting_asc");
+		    		}
+		    	}
+		    	
+		    	var orderParam={};
+		    	var singleSortIndex=1;
+		    	orderParam["order["+singleSortIndex+"][column]"]=singleSortIndex;
+		    	orderParam["columns["+singleSortIndex+"][name]"]=name;
+		    	orderParam["order["+singleSortIndex+"][dir]"]=$sort.data("order");
+		    	//console.log("name::"+name);
+		    	//console.log($sort.data("order"));
+		    	
+		    	//排序条件只能以参数形式传递，因为列不实际存在表格里
+		    	var v_orderParam={};
+		    	if(typeof extraData=="function"){
+		    		$.extend(v_orderParam,extraData(),orderParam);
+		    	}else
+		    		$.extend(v_orderParam,extraData,orderParam);
+		    	
+		    	extraData=v_orderParam;
+		    	$dataTable.draw();
+		    });
+		}
+	}
+    
+    //全选按钮
+    $(".checkAll",$('#'+tableID)).on('click',function(event){
+    	//$(this).parent().parent().next("table");
+    	if($(this).prop("checked")){
+    		$(".jhTableCheckbox",$('#'+tableID)).each(function(){
+    			$(this).prop("checked",true);
+    		});
+    			
+    		$dataTable.$('tr.selectedStyle').removeClass('selectedStyle');
+        	$dataTable.rows().nodes().to$().addClass('selectedStyle');
+        	
+        	$dataTable.rows().nodes().to$().removeClass('selected');
+        	$dataTable.rows().nodes().to$().addClass('selected');
+    	}else{
+    		$(".jhTableCheckbox",$('#'+tableID)).each(function(){
+    			$(this).prop("checked",false);
+    		});
+    		$dataTable.$('tr.selectedStyle').removeClass('selectedStyle');
+    		$dataTable.rows().nodes().to$().removeClass('selected');
+    	}
+//    	$dataTable.rows().nodes().to$().toggleClass('selected');
+    });
+    
+    //提交查询
+    if(searchButID!=undefined&&searchButID!=""){
+    	$("#"+searchButID,$("#"+searchFormID)).on("click",function(){
+        	//searchFormParam=$("#"+searchFormID).serializeArray();
+    		if(beforeSearch()){
+    			$dataTable.draw();
+    		}
+        });
+    }
+    
+    if(exportButID!=undefined&&exportButID!=null&&exportButID!=""
+    	&&exportDataUrl!=undefined&&exportDataUrl!=null&&exportDataUrl!=""){
+    	$("#"+exportButID).on("click",function(){
+    		if(beforeSearch()){
+    			var param=$dataTable.getSubmitParam();
+    			openPostWindow(exportDataUrl,param,"_self");
+    		}
+        });
+    }
+    
+    //form中的控件 回车激活查询
+    $(window).keydown(function(event){
+    	if(searchFormID!=undefined&&searchFormID!=""){
+    		if(event.keyCode==13){
+        		event.preventDefault();
+        		var $target = $((event.target)?event.target:event.srcElement);
+//        		console.log($($target,$("#search_form")).parent().html());
+        		if($("#"+searchFormID).find($target).size()>0){
+        			//searchFormParam=$("#"+searchFormID).serializeArray();
+        			$dataTable.draw();
+        		}
+        		
+        	}
+    	}
+	});
+    
+    /**
+     * 修改查询列表数据时，除查询表单上的数据以外需传递的参数
+     */
+    $dataTable.setExtraData=function(val){
+    	extraData=val;
+    	//console.log("extra::"+val);
+    };
+    
+    $dataTable.getSubmitParam=function(){
+    	var returnVal={};
+    	var data = $dataTable.ajax.params();
+    	var params=jQuery.param(data);
+    	//console.log(params);
+    	var paramArr=params.split("&");
+    	for (var index = 0; index < paramArr.length; index++) {
+    		var paramItem=paramArr[index];
+    		var key=decodeURI(paramItem.split("=")[0]);
+    		var value=decodeURI(paramItem.split("=")[1]);
+    		returnVal[key]=value;
+		}
+//    	console.log(returnVal);
+    	return returnVal;
+    }
+    return $dataTable;
+}
+
+function removeSelectedRows($table){
+	$($table.rows('.selectedStyle').nodes()).removeClass('selectedStyle');
+	$($table.rows('.selected').nodes()).removeClass('selected');
+	$table.$(".jhTableCheckbox").prop("checked",false);
+}
+
+function clearChoosed(tableID){
+	$(".checkAll",$('#'+tableID)).prop("checked",false);
+	removeSelectedRows($("#"+tableID).DataTable());
+}
+
+/**
+ * 获取传入dataTable选中的id，多个用逗号隔开
+ * @param $table
+ * @param primaryKey 表格数据的主键属性，不传则默认为id
+ * @returns
+ */
+function getTableSelectValue($table,primaryKey){
+	if(primaryKey=undefined||primaryKey==null||primaryKey=='')
+		primaryKey="id";
+	var $rows=$table.rows('.selected').data();
+	var idArr=new Array();
+	$.each($rows,function(i,row){
+		var id=row[primaryKey];
+		//$userTable.draw(false); 
+		idArr.push(id);
+	});
+	var ids=idArr.join(",");
+	return ids;
+}

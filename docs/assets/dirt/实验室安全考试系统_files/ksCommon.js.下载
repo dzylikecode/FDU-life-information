@@ -1,0 +1,127 @@
+/*************公共部分START****************/
+/**
+ * 小题单选题题型
+ */
+var CODE_SINGELSELECT = "singelSelect";
+/**
+ * 小题多选题题型
+ */
+var CODE_MULTISELECT = "multiSelect";
+/**
+ * 小题填空问答题题型
+ */
+var CODE_COMPLETION = "completion";
+
+/**
+ * 试题部分审核通过
+ */
+var QUESTION_AUDITRESULT_PASS = "pass";
+/**
+ * 试题部分审核退回
+ */
+var QUESTION_AUDITRESULT_BACK = "back";
+/**
+ * 试题部分停用
+ */
+var QUESTION_AUDITRESULT_DISABLED = "disabled";
+
+/*************公共部分END****************/
+
+
+/**********试题模块START***********/
+/**
+ * 试题填写中
+ */
+var DATA_STATUS_TOPIC_TXZ = "txz";
+
+/**
+ * 试题废弃
+ */
+var DATA_STATUS_TOPIC_FQ = "fq";
+
+/**********试题模块END***********/
+
+/*********素材模块START**********/
+/**
+ * 音频素材类型
+ */
+var MATERIAL_AUDIO_TYPE=[".mp3",".wav",".wma",".mid"];
+/**
+ * 视频素材类型
+ */
+var MATERIAL_VIDIO_TYPE=[".mp4",".wmv",".avi",".asf"];
+/**
+ * 图片素材类型
+ */
+var MATERIAL_PICTURE_TYPE=[".gif",".jpg",".jpeg",".bmp",".png"];
+/**
+ * flash素材类型
+ */
+var MATERIAL_FLASH_TYPE=[".swf"];
+/**
+ * 压缩包类型
+ */
+var MATERIAL_PACKAGE_TYPE=[".zip"];
+/**
+ * 音频素材大小限制
+ */
+var MATERIAL_AUDIO_SIZE="104857600";
+/**
+ * 视频素材大小限制
+ */
+var MATERIAL_VIDIO_SIZE="524288000";
+/**
+ * 图片素材大小限制
+ */
+var MATERIAL_PICTURE_SIZE="2097152";
+/**
+ * flash素材大小限制
+ */
+var MATERIAL_FLASH_SIZE="10485760";
+/**
+ * 压缩包大小限制
+ */
+var MATERIAL_PACKAGE_SIZE="1073741824";
+
+/**********素材模块END***********/
+
+/*******************************试题建议单模块*********************************/
+var TOPICSUGGESTBYTOPIC_SIGN = "topicSuggestByTopic";
+
+/**
+ * 填写中
+ */
+var DATA_STATUS_SUGGEST_DOING = "doing";
+
+/**
+ * 待审核
+ */
+var DATA_STATUS_SUGGEST_WAIT = "wait";
+
+/**
+ * 已更新
+ */
+var DATA_STATUS_SUGGEST_UPDATED = "updated";
+
+/**
+ * 另行修改
+ */
+var DATA_STATUS_SUGGEST_OTHERUPDATED = "otherUpdated";
+
+/**
+ * 禁用(删除)
+ */
+var DATA_STATUS_SUGGEST_DISABLED = "disabled";
+
+
+/***************************考试部分START***************************/
+/**
+ *不确定 
+ */
+var DATA_STATUS_EP_ANSWER_UNSURE = "ep_answer_unsure";
+/**
+ *确定 
+ */
+var DATA_STATUS_EP_ANSWER_SAVED = "ep_answer_saved";
+
+/***************************考试部分END***************************/

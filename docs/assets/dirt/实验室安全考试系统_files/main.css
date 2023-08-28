@@ -1,0 +1,180 @@
+@charset "utf-8";
+/* CSS Document */
+html,body{
+	padding:0;
+	margin:0;
+	width:100%;
+	height:100%;
+	font-family:'微软雅黑','黑体',Arial;
+	font-size:14px;
+	color:#333;
+	background:#dadada;
+	}
+div,p,ul,ol,li,span,dl,dt,dd,form,input,select,a,img,h3,h4{
+	padding:0;
+	margin:0;
+	}
+.fl{
+	float:left;
+	margin-left: 10px;
+	}
+.fr{
+	float:right;
+	}
+.clearfix:after{
+	content:'.';
+	height:0;
+	clear:both;
+	display:block;
+	visibility:hidden;
+	}
+.clearfix{
+	*zoom:1;
+	}
+ul,li{
+	list-style:none;
+	}
+a{
+	color:#333;
+	text-decoration:none;
+	outline:none;
+	}
+a:hover{
+	color:none;
+	text-decoration:none;
+	}
+a:focus{
+	text-decoration:none !important;
+}	
+img{
+	border:none;
+	}
+#wrap{
+	min-height:100%;
+	position:relative;
+	}
+	
+/*页眉样式*/
+#top{
+	width:100%;
+	height:152px;
+	background:url(../images/top_bg.png) repeat-x;
+	}
+.logo_con{
+	width:1200px;
+	margin:0 auto;
+	}
+.logo_con .back{
+	width:102px;
+	height:52px;
+	font-size:0px;
+	display:block;
+	float:right;
+	margin-top:48px;
+	background:url(../images/back.png) left top no-repeat;
+	}
+.logo_con .back:hover{
+	background:url(../images/back.png) left bottom no-repeat;
+	}
+.logo_con>div{
+	float:right;
+	color:#fff;
+	font-size:16px;
+	}
+.top_link{
+	line-height:150px;
+	}
+.top_link a{
+	font-size:15px;
+	color:#fff;
+	font-family:'黑体';
+	margin:15px;
+	}
+.top_link a img{
+		padding-right:5px;
+	}
+.jiaojuan{
+	}
+.jiaojuan a{
+	width:112px;
+	height:52px;
+	font-size:0px;
+	display:inline-block;
+	margin-left:70px;
+	margin-top:50px;
+	background:url(../images/jiaojuan.png) no-repeat;
+	}
+.jiaojuan a:hover{
+	background:url(../images/jiaojuan2.png) no-repeat;
+	}
+.residual_time{
+	margin-left:50px;
+	}
+.residual_time span{
+	font-size:30px;
+	font-family:Arial;
+	font-weight:bold;
+	line-height:150px;
+	padding:0 5px;
+	}
+.date{
+	display:block;
+	text-align:center;
+	margin-top:45px;	
+	}
+.date span{
+	padding:0 5px;
+	}
+.date p{	
+	margin-top:20px;
+	}
+
+/*页脚样式*/
+#footer{
+	height:50px;
+	width:100%;
+	position:absolute;
+	bottom:0;
+	}
+#footer>div{
+	width:325px;
+	text-align:center;
+	font-family:'楷体';
+	color:#666;
+	margin:0 auto;
+	border-bottom:1px dashed #b3b3b3;
+	}
+#footer>div span{
+	margin-right:10px;
+	}
+
+/* 以下是考试首页样式	*/
+.clearfix_index:after{
+	content:'.';
+	height:0;
+	clear:both;
+	display:block;
+	visibility:hidden;
+	}
+.clearfix_index{
+	width:873px;
+	margin:0 auto;
+	*zoom:1;
+	}	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

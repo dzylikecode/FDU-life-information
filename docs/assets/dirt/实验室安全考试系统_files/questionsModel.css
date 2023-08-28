@@ -1,0 +1,44 @@
+/**  ‘Ã‚—˘ Ω*/
+
+.top_distance{
+	margin-top: 20px;
+}
+
+.left_title_uedit{
+	text-align: right;
+	height:9em;
+	line-height: 9em;
+}
+.left_title_icheck{
+	text-align: right;
+	height:1.7em;
+	line-height: 1.7em;
+}
+.right_operate{
+	margin-left: 2px;
+	height:8em;
+	line-height: 8em;
+}
+
+.icheck{
+	margin-left: 15px;
+	float: left;
+}
+.icheck_span{
+	height:0.2em;
+	line-height: 0.2em;
+}
+.addBut{
+	float: right;
+	margin-right: 20%;
+}
+.delBut{
+	float: right;
+	margin-right: 20%;
+}
+.decollator{
+	border-left: 4px solid #ddd;
+	/* border-top: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	border-bottom: 1px solid #ddd; */
+}

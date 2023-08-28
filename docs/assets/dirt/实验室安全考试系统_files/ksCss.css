@@ -1,0 +1,138 @@
+/** ������ʽ*/
+
+/**questionsModel*/
+.top_distance_20{
+	margin-top: 20px;
+}
+
+.top_distance_10{
+	margin-top: 10px;
+}
+
+.left_title_uedit{
+	text-align: right;
+	height:9em;
+	line-height: 9em;
+}
+.left_title_icheck{
+	text-align: right;
+	height:1.7em;
+	line-height: 1.7em;
+}
+.right_operate{
+	margin-left: 2px;
+	height:8em;
+	line-height: 8em;
+}
+
+.icheck{
+	margin-left: 15px;
+	float: left;
+}
+.icheck_span{
+	margin-left:3px;
+	height:0.2em;
+	line-height: 0.2em;
+}
+
+/**topicEdit*/
+.input_group_icheck{
+	height:2em;
+	line-height: 2em;
+}
+.input_group{
+	margin-top:10px;
+	float: left;
+}
+
+.lable_title_input_group{
+	height: 7em;
+	line-height: 7em;
+	overflow: hidden;
+	text-align:right;
+}
+
+.lable_title_common{
+	height: 2.5em;
+	line-height: 2.7em;
+	overflow: hidden;
+	text-align:right;
+}
+
+.lable_title_textArea{
+	height: 4.7em;
+	line-height: 4.7em;
+	overflow: hidden;
+	text-align:right;
+}
+
+.icheck_div_common{
+	margin-top: 5px;
+}
+
+.icheck_span_common{
+	margin-left: 15px;
+	float: left;
+}
+.icheck_label_common{
+	margin-left: 25px;
+}
+.sup{
+	height: 2.5em;
+	line-height: 2.5em;
+	overflow: hidden;
+	text-align:right;
+}
+.custom_small{
+	color: red;
+}
+
+/**������ҳ�б�*/
+.basic_icons{
+	margin-top: 20%;
+}
+.basic_icons > a{
+	margin-left: 5px;
+}
+.box-icon-but > a{
+	margin-left: 5px;
+}
+.basic_icons_2{
+	margin-top: 30%;
+}
+.i_20{
+	margin-left: 5px;
+	font-size: 20px;
+}
+/**ð��*/
+.colon{
+	margin-left: 2px;
+	margin-right: 2px;
+}
+/***********ȡ��bootstrap��checkbox��padding************/
+.checkbox label, .radio label {
+    padding-left: 0px !important;
+}
+/* ��ʾʡ�Է������?�޼����ı� �����л��� */
+.hidd_long {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;  
+}
+/**���Թ�����ʽ*/
+.left_distance_-5 {
+	margin-left: -5px;
+}
+.left_distance_-15 {
+	margin-left: -20px;
+}
+.left_distance_10 {
+	margin-left: 10px;
+}
+.left_distance_15 {
+	margin-left: 15px;
+}
+.float_left_distance_10 {
+	float: left;
+	margin-left: 10px;
+}

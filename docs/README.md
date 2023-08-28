@@ -20,6 +20,14 @@
 - [新生攻略系列之三 | 网络办理指南](https://mp.weixin.qq.com/s/M9-V_-7aa7xl2xeDUbYLog)
 - [新生攻略系列之四 | 校园地图导览](https://mp.weixin.qq.com/s/1yKkK4Hyt1esFo3UgeZBbw)
 
+### 测试
+
+- 入学教育测试
+  - [2021 复旦大学研究生入学教育测试答案 修改扩展版](https://baijiahao.baidu.com/s?id=1710683406328236478&wfr=spider&for=pc)
+  - <a class="Pages" target="_blank" href="./assets/dirt/2023级研究生入学教育测试_ 2023级研究生入学教育测试.pdf">第一次测试</a>
+  - <a class="Pages" target="_blank" href="./assets/dirt/2023级研究生入学教育测试_ 2023级研究生入学教育测试.html">第二次测试</a>
+- <a class="Pages" target="_blank" href="./assets/dirt/实验室安全考试系统.html">实验室安全专项测试</a>
+
 ## 网站
 
 - [复旦大学迎新服务](https://freshman.fudan.edu.cn/index.action)

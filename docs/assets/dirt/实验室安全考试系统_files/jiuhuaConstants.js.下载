@@ -1,0 +1,123 @@
+/****
+ * 在js 中常用的常量，有些变量在JAVA的CommonConstats类中存在对应的常量
+ */
+/**
+ * 新增，修改操作标识
+ */
+var OPT_SIGN="jhOptSign";
+
+/**
+ * 新增操作标识
+ */
+var OPT_ADD="jhOptAdd";
+
+/**
+ * 修改操作标识
+ */
+var OPT_MODIFY="jhOptModify";
+
+/**
+ * 提交标识
+ */
+var OPT_SUBMIT="jhSubmitSign";
+
+/**
+ * 成功
+ */
+var SUCCESS="1";
+
+/**
+ * 失败
+ */
+var FAILED="0";
+
+
+/**
+ * 真
+ */
+var TRUE="1";
+
+/**
+ * 假
+ */
+var FALSE="0";
+
+var NOTY_ERROR="error";
+	
+var NOTY_SUCCESS="success";
+
+var NOTY_ALERT="alert";
+
+var NOTY_WARNING="warning";
+
+var DESC='desc';
+
+var ASC='asc';
+
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_DEFAULT] = '信息提示';
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_INFO] = '信息提示';
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_PRIMARY] = '信息提示';
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_SUCCESS] = '成功';
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_WARNING] = '信息提示';
+BootstrapDialog.DEFAULT_TEXTS[BootstrapDialog.TYPE_DANGER] = '系统警告';
+BootstrapDialog.DEFAULT_TEXTS['OK'] = '确认';
+BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '取消';
+BootstrapDialog.DEFAULT_TEXTS['CONFIRM'] = '确认';
+
+//$.fn.bootstrapSwitch.defaults.size = 'mini';
+
+/**
+ * 指定的名称 根据所在附件类别，或所在附件设置名称重命名文件名
+ */
+var APPOINT_NAME="1";
+/**
+ * 下载时为上传的原文件名
+ */
+var ORIGINAL_NAME="2";
+
+/**
+ * 待保存
+ */
+var STATUS_WAIT_SAVE_ID="-99";
+
+/**
+ * 同意
+ */
+var APPROVE="approve";
+
+/**
+ * 不同意
+ */
+var REFUSE="refuse";
+
+/**
+ * 退回
+ */
+var SENDBACK="sendback";
+
+
+/***********按钮跳转方式**************/
+/**跳转方式-新页面*/
+var JUMP_MODE_NEWPAGE = "newPage";
+/**跳转方式-模态框*/
+var JUMP_MODE_DIALOG = "dialog";
+/**跳转方式-本页面*/
+var JUMP_MODE_THISPAGE = "thisPage";
+
+/****jquery step *****/
+/**保存事件**/
+var EVENT_SAVE_PROGRESS="saveProgress";
+
+/**
+ * 操作模式 可编辑
+ */
+var OPT_MODE_EDIT="edit";
+/**
+ * 操作模式 查看
+ */
+var OPT_MODE_VIEW="view";
+
+/**
+ * 操作模式 审核
+ */
+var OPT_MODE_AUDIT="audit";

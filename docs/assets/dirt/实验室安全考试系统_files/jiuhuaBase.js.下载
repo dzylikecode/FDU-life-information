@@ -1,0 +1,1567 @@
+
+!function ($) {
+	$(function(){
+		$(document).on("click","a[href='#']",function(event){
+	    	event.preventDefault();
+	    });
+		
+		$('ul.main-menu li a').each(function () {
+	    	// console.log(String(window.location));
+	        if ($(this)[0].href == String(window.location))
+	            $(this).parent().addClass('active');
+	    });
+		$('[data-toggle="tooltip"]').tooltip();
+	});
+}(window.jQuery);
+
+if (!window.console){
+    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
+                 "group", "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+    window.console = {};
+    for (var i = 0; i < names.length; ++i)
+        window.console[names[i]] = function() {};
+}
+// 提示信息的基本设置
+var notyOptions = {
+		"layout":"topCenter",
+		"animateOpen": {"opacity": "show"},
+		"timeout":1000
+};
+
+
+
+function to_label($formElement){
+	var value="";
+	var name="";
+	var id="";
+	var nameStr="";
+	var idStr="";
+	if($formElement.get(0).tagName.toUpperCase()=='INPUT'){
+		if($formElement.attr("type")=='text'){
+			id=$formElement.attr("id");
+			if(id!=null&&id!==""){
+				idStr=" id=\""+id+"\"";
+			}
+			name=$formElement.attr("name");
+			if(name!=null&&name!==""){
+				nameStr=" name=\""+name+"\"";
+			}
+			value=$formElement.val();
+		}
+	}
+	var $ememtParent=$formElement.parent();
+	$ememtParent.empty();
+	$ememtParent.html("<p class=\"form-control-static\" id=\""+id+"Label\">"+value+"</p><input type=\"hidden\" value=\""+value+"\" "+idStr+"  "+nameStr+"/>");
+}
+
+/**
+ * 判断表单的操作状态 新增/修改
+ */
+function getFormOptStatus($formElment){
+	var optVal=$("#"+OPT_SIGN,$formElment).val();
+	return optVal;
+}
+
+function isOptAdd($formElement){
+	if(getFormOptStatus($formElement)==OPT_ADD){
+		return true;
+	}else
+		return false;
+}
+
+function isOptModify($formElement){
+	if(getFormOptStatus($formElement)==OPT_MODIFY){
+		return true;
+	}else
+		return false;
+}
+
+/**
+ * 转换id，仅转义.，该方式是最常用的
+ * 按照jquery根据id获取元素的方法$("#id")对于id中带.必须加转义符$("#table.id")必须转移为$("#table\\.id");
+ * 
+ * @param inputVar
+ * @return
+ */
+var $fId=function(inputVar){
+	patrn=new RegExp("\\.","g");
+	return inputVar.replace(patrn,"\\.");
+};
+
+/**
+ * 包装jquery的$()方法，如果出入的字符串中有'.'也能正常获取
+ * 
+ * @param inputVar
+ * @return
+ */
+var $ge=function(inputVar,scopeVar){
+  if(scopeVar){
+	  return $($fId(inputVar),scopeVar);
+  }else
+	  return $($fId(inputVar));
+};
+
+/**
+ * 包装jquery的$()方法，如果出入的字符串中有'.'也能正常获取
+ * 
+ * @param inputVar
+ * @return
+ */
+var $ge=function(inputVar,scopeVar){
+  if(scopeVar){
+	  return $($fId(inputVar),scopeVar);
+  }else
+	  return $($fId(inputVar));
+};
+
+moment.locale('zh-cn');
+// moment().format("YYYY-MM-DD HH:mm:ss");
+
+var formSerializeObject = function ($form) { /* 将form 表单元素的值序列化 */
+	var amountObj={};
+	$.each($form.serializeArray(),function(index){
+		if (amountObj[this['name']]) {
+			amountObj[this['name']] = amountObj[this['name']]+1;
+        } else {
+        	amountObj[this['name']] = 1;
+        }
+	});
+	console.log(amountObj);
+    var obj = {};
+    var multipleValueIndex = {};
+    $.each($form.serializeArray(), function (index) {
+        if (amountObj[this['name']]>1) {
+        	console.log(multipleValueIndex[this['name']]);
+            if(multipleValueIndex[this['name']]){
+            	var name=this['name'];
+            	if(name.indexOf('.')>0){
+            		name=name.substring(0,name.indexOf('.'))+"["+multipleValueIndex[this['name']]+"]"+name.substr(name.indexOf('.'));
+            	}else{
+            		name=name+multipleValueIndex[this['name']];
+            	}
+            	obj[name]=this['value'];
+            	multipleValueIndex[this['name']]=multipleValueIndex[this['name']]+1;
+            }else{
+            	var name=this['name'];
+            	if(name.indexOf('.')>0){
+            		name=name.substring(0,name.indexOf('.'))+"[0]"+name.substr(name.indexOf('.'));
+            	}else{
+            		name=name+"[0]";
+            	}
+            	obj[name]=this['value'];
+            	multipleValueIndex[this['name']]=1;
+            }
+        } else {
+            obj[this['name']] = this['value'];
+        }
+    });
+    return obj;
+};
+
+/**
+ * ajax生成一个select元素的选项 setting { id:"",//select的id
+ * url:"",//加载option的地址，不需要自己拼接项目上下文路径，需要返回DataMessageObject对象，返回的数据存在dataObject中
+ * data:{key:value},//为ajax传递的数据,json格式 textAttr:"",//解析出的对象中作为option的文字显示的属性
+ * valueAttr:"",//解析出的对象中作为option的值的属性 removeFirstOption:false,
+ * //是否移除第一个选项,默认为false，如果第一个值为类似请选择的空选项，可以设置加载时保留 callback:function(){
+ * //生成选项后的回调函数 } }
+ * 
+ * @param setting
+ */
+function buildSelect(setting){
+	var $selectObj=$ge("#"+setting.id);
+	var url=SYS_CONTEXT+setting.url;
+	/*
+	 * if(url.indexOf("?")<0) url=url+"?"; else url=url+"&";
+	 * url+="t="+nowTime();
+	 */
+	var data=setting.data;
+	data["t"]=nowTime();
+	var textAttr=setting.textAttr;
+	var valueAttr=setting.valueAttr;
+	var removeFirstOption=setting.removeFirstOption!=undefined?setting.removeFirstOption:false;
+	$.ajax({
+		url:url,
+		type:'POST',
+		dataType:'json',
+		data:data,
+		success:function(returnObj){
+			if(returnObj!=null){
+				if(returnObj.result==SUCCESS){
+					if(!removeFirstOption){
+						$selectObj.children(":gt(0)").remove();
+					}else{
+						$selectObj.children().remove();
+					}
+					for(i=0;i<returnObj.dataObject.length;i++){
+						var dataObject=returnObj.dataObject[i];
+						var text=dataObject[textAttr];
+						var value=dataObject[valueAttr];
+						var oOption = document.createElement("OPTION");
+						$selectObj[0].options.add(oOption);
+						oOption.innerHTML = text;
+						oOption.value = value;
+					}
+					if(setting.callback)
+						setting.callback();
+				}else{
+					console.log("读取数据失败");
+					console.log(returnObj.message);
+				}
+			}
+		}
+	});
+}
+
+/**
+ * 返回时间戳
+ * 
+ * @return
+ */
+function nowTime(){
+	d=new Date();
+	return d.getTime();
+}
+
+/**
+ * 将form中的权限参数序列化为字符串
+ * 
+ * @param authDivId
+ */
+function getAuthParamStr(authDivId){
+	// console.log("getAuthParamStr");
+	// console.log($ge("#"+authDivId).serialize());
+	return $ge("#"+authDivId).serialize();
+}
+
+/**
+ * 将form中的权限参数转为json对象
+ * 
+ * @param authDivId
+ */
+function getAuthParamJson(authDivId){
+	var o = {};
+	var authParam=$ge("#"+authDivId).serializeArray();
+	$.each(authParam, function (index) {
+		if (o[this.name] !== undefined) {
+			if (!o[this.name].push) {
+				o[this.name] = [o[this.name]];
+			}
+			o[this.name].push(this.value || '');
+		} else {
+			o[this.name] = this.value || '';
+		}
+	});
+	console.log(o);
+	return o;
+}
+
+function formSerializeToJson($form){
+	var o = {};
+	var formParam=$form.serializeArray();
+	$.each(formParam, function (index) {
+		if (o[this.name] !== undefined) {
+			if (!o[this.name].push) {
+				o[this.name] = [o[this.name]];
+			}
+			o[this.name].push(this.value || '');
+		} else {
+			o[this.name] = this.value || '';
+		}
+	});
+	return o;
+}
+
+
+// Since confModal is essentially a nested modal it's enforceFocus method
+// must be no-op'd or the following error results
+// "Uncaught RangeError: Maximum call stack size exceeded"
+// But then when the nested modal is hidden we reset modal.enforceFocus
+/*
+ * var enforceModalFocusFn = $.fn.modal.Constructor.prototype.enforceFocus;
+ * 
+ * $.fn.modal.Constructor.prototype.enforceFocus = function() {};
+ * 
+ * $confModal.on('hidden', function() {
+ * $.fn.modal.Constructor.prototype.enforceFocus = enforceModalFocusFn; });
+ * 
+ * $confModal.modal({ backdrop : false });
+ */
+
+var UPLOADIFY_TYPE_BUTTON="button";
+var UPLOADIFY_TYPE_ICON="icon";
+var UPLOADIFY_TYPE_TEXT="text";
+var fileCacheMap = {};
+fileCacheMap["relatives"] = {};
+var attachmentFileTip = "上传文件";
+function initUploadify(type,userSetting,index){
+	/**
+	 * type="button";//按钮 type="icon";//上传图标 userSetting={
+	 * "auto":false,//数据为添加状态的时候，是否自动上传,不填写则为否,自动上传需设置为true
+	 * "uploadJqObj":"",//上传控件Jquery对象,及 input type="file" 的上传控件
+	 * "uploader":"",//上传地址 "jsessionid":"",//session ID
+	 * "success":function(jsonData){//回传json数据 //队列中，每一个文件上传成功后执行的回调函数 },
+	 * "uploadComplete":function(){//全部文件处理完成后，执行回调函数，无论成功不成功 },
+	 * "buttonText":"按钮文字",//仅为按钮形式时使用，图标形式无文字 "queueID" : 'upload_queue',
+	 * //上传队列显示区域的id "queueSizeLimit":1//上传限制,不设置则无限制
+	 * "data":function(file,uploadifyObj){//传递的其他数据，需返回json格式 //@parem file The
+	 * file object that is about to be uploaded //@param uploadifyObj
+	 * 上传控件Jquery对象 }, buttonClass:''//上传按钮样式，可以通过覆盖替换成自己的图标或样式 }
+	 */
+	var height;
+	var width;
+	if(type==UPLOADIFY_TYPE_ICON){// 图标形式
+		if(!userSetting.buttonClass)
+			userSetting.buttonClass="jh_uploadIcon fa fa-upload";
+// userSetting.buttonText="";
+		height=16;
+		width=16;
+	}else if(type==UPLOADIFY_TYPE_BUTTON){// 按钮形式
+		userSetting.buttonClass="jh_uploadBut btn btn-primary btn-sm";
+		height=30;
+		width=70;
+	}else if(type==UPLOADIFY_TYPE_TEXT){
+		userSetting.buttonClass="jh_uploadText";
+	}
+	var formData=userSetting.data;
+	var options={};
+	console.log("initUploadify::userSetting.queueID:: " + userSetting.queueID);
+	if(userSetting.queueSizeLimit&&userSetting.queueSizeLimit==1)
+		userSetting.multi=false;
+	jQuery.extend(options, userSetting);
+	console.log("initUploadify::queueID:: " + options.queueID + "::" + (options.queueID?options.queueID:false));
+	options.removeCompleted = userSetting.removeCompleted || true;
+	var $uploadJqObj=options.uploadJqObj;
+	var defaultSetting={
+		'auto':options.auto?options.auto:true,
+		'buttonImage':null,
+		'buttonClass':options.buttonClass,
+	    'height': height,
+	    'width': width,
+	    'swf': SYS_CONTEXT+'/statics/uploadify/uploadify.swf',
+	    'uploader': options.uploader+";jsessionid="+options.jsessionid,
+	    'cancelImage': SYS_CONTEXT+'/statics/uploadify/uploadify-cancel.png',
+	    // 'formData':{"attachment.id" : $ge("#atcHid").val(),"user.id" :
+		// $ge("#userHid").val()},
+	    "queueID" : options.queueID?options.queueID:false,
+	    "removeCompleted": options.removeCompleted,
+	    'buttonText' : "",
+	    "displayData": "percentage",
+	    'onUploadSuccess': function(file, data, response) {
+	       	// 显示照片
+	    	// console.log(data);
+  			var JsonData=jQuery.parseJSON(data);
+  			console.log("onUploadSuccess: " + JsonData.result);
+  			// refreshImg(JsonData);
+  			if(JsonData.result == SUCCESS) {
+  			  console.log("onUploadSuccess:index " + index);
+  			  if (index) {
+  			    fileCacheMap[index].relatives[JsonData.dataObject.attachment.id] = file.name;
+  			    fileCacheMap.relatives[JsonData.dataObject.attachment.id] = index;
+  			  }
+  			  if (options.success) {
+  			    options.success(JsonData);
+  			  }
+  			} else {
+  			  try {
+  			    if (formData(file, $uploadJqObj).isMustPhoto) {
+  			      BootstrapDialog.alert({
+  			        "message": "对不起，您选择的<b style=\"color: red\">" + file.name + "</b>不是图片，或不符合要求，或异常！",
+  			        "type": BootstrapDialog.TYPE_WARNING
+  			      });
+  			    }
+  			  } catch (e) {
+  			    console.log("onUploadSuccess::Exception:: " + e);
+  			    BootstrapDialog.alert({
+  			      "message": "对不起，您选择的文件中<b style=\"color: red\">" + file.name + "</b>文件不符合“提示”中的要求，或异常！",
+  			      "type": BootstrapDialog.TYPE_WARNING
+  			    });
+  			  }
+  			  
+  			  if (index) {
+  			    console.log("upload error :: before : " + index);
+  			    console.log("upload error :: before : " + fileCacheMap[index].count);
+  			    console.log("upload error :: before : " + fileCacheMap[index].size + " B");
+  			    fileCacheMap[index].count--;
+  			    fileCacheMap[index].size -= file.size;
+  			    fileCacheMap[index].files[file.name] = undefined;
+  			    console.log("upload error :: after : " + fileCacheMap[index].count);
+  			    console.log("upload error :: after : " + fileCacheMap[index].size + " B");
+  			  }
+  			}
+	    },
+	    'onQueueComplete':function(queueData){
+	    	if(options.uploadComplete)
+	    		options.uploadComplete();
+	    },
+	    'overrideEvents' : ['onDialogClose','onSelectError','onUploadStart'],
+	    'removeTimeout':1,
+	    'onSelectError':function(file,errorCode,errorMsg){
+	   	    var msgText = "";  
+	        switch (errorCode) {
+	            case SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED:  
+	                // this.queueData.errorMsg = "每次最多上传 " +
+					// this.settings.queueSizeLimit + "个文件";
+	                msgText += "系统一次最多同时上传 " + this.settings.queueSizeLimit + "个文件";  
+	                break;  
+	            case SWFUpload.QUEUE_ERROR.FILE_EXCEEDS_SIZE_LIMIT:  
+	                msgText += "单个上传的文件不能超过" + this.settings.fileSizeLimit + "，请重新上传。";  
+	                break;  
+	            case SWFUpload.QUEUE_ERROR.ZERO_BYTE_FILE:  
+	                msgText += "上传文件大小为0,请重新上传！";  
+	                break;  
+	            case SWFUpload.QUEUE_ERROR.INVALID_FILETYPE:  
+	                msgText += "上传文件格式不正确，请上传" + this.settings.fileTypeExts+"格式的文件";  
+	                break;  
+	            default:  
+	                msgText += "错误代码：" + errorCode + "\n" + errorMsg;  
+	        }
+	        BootstrapDialog.alert({message:msgText,type: BootstrapDialog.TYPE_WARNING});
+	    },
+	    'onUploadStart' : function(file) {
+	      console.log("initUploadify::onUploadStart::queueID:: " + defaultSetting.queueID );
+	    	var swf_id=file.id.substring(0,file.id.lastIndexOf("_"));
+// console.log("objId"+swf_id);
+// console.log(options.sendData);
+	    	var $uploadifyObj=$("#"+swf_id).parent();
+	    	var formData=(options.data)(file,$uploadifyObj);
+	    	$uploadJqObj.uploadify("settings", "formData",formData);
+	    },
+	    'onInit':function(instance){
+	    	console.log("onInit::" + instance);
+	    	var buttonId=instance.button[0].id;
+	    	console.log(buttonId);
+// var swf_id=file.id.substring(0,file.id.lastIndexOf("_"));
+// var $uploadifyObj=$("#"+swf_id).parent();
+	    	console.log("parent:::");
+	    	console.log($ge("#"+buttonId).parent().attr("id"));
+	    	if(type==UPLOADIFY_TYPE_ICON)
+	    		$ge("#"+buttonId).parent().attr("title",attachmentFileTip).tooltip();
+	    },
+	    "onUploadError": function(file, errorCode, errorMsg, errorString) {
+	      if (SWFUpload.UPLOAD_ERROR.FILE_CANCELLED != errorCode) {
+	        BootstrapDialog.alert({
+	          "message": "对不起，您选择的文件中<b style=\"color: red\">" + file.name + "</b>文件不符合“提示”中的要求，或异常！",
+	          "type": BootstrapDialog.TYPE_WARNING
+	        });
+	        
+	        console.log("upload error :: before : " + index);
+	        console.log("upload error :: before : " + fileCacheMap[index].count);
+	        console.log("upload error :: before : " + fileCacheMap[index].size + " B");
+	        fileCacheMap[index].count--;
+	        fileCacheMap[index].size -= file.size;
+	        fileCacheMap[index].files[file.name] = undefined;
+	        console.log("upload error :: after : " + fileCacheMap[index].count);
+	        console.log("upload error :: after : " + fileCacheMap[index].size + " B");
+	      }
+	    }
+	};
+	
+	delete userSetting.uploadJqObj;
+	delete userSetting.uploader;
+	delete userSetting.jsessionid;
+	delete userSetting.success;
+	delete userSetting.data;
+	$.extend(defaultSetting,userSetting);
+	
+	console.log("initUploadify::defaultSetting::queueID:: " + defaultSetting.queueID );
+	/*
+	 * console.log("init uploadify"); console.log(defaultSetting);
+	 * $.each(defaultSetting,function(i,n){ console.log("Name: " + i + ", Value: " +
+	 * n ); })
+	 */
+	$uploadJqObj.uploadify(defaultSetting);
+	console.log("initUploadify::end::defaultSetting::queueID:: " + defaultSetting.queueID );
+}
+
+/**
+ * 下载文件
+ * 
+ * @param attachmentId
+ *            附件id
+ * @param fileNameType
+ *            下载时附件名称命名方式 等于 APPOINT_NAME 为按指定名称下载，ORIGINAL_NAME或空为按上传时的原文件名下载
+ */
+function downloadFile(attachmentId,fileNameType){/* debugger */ 
+	if(fileNameType==undefined||fileNameType==null||fileNameType==''){
+		window.location.href=SYS_CONTEXT+"/smjFrame/attachment/attachment/downloadAttachment?id="+attachmentId+"&fileNameType="+ORIGINAL_NAME;
+	}else{
+		window.location.href=SYS_CONTEXT+"/smjFrame/attachment/attachment/downloadAttachment?id="+attachmentId+"&fileNameType="+fileNameType;
+	}
+}
+
+/**
+ * 预览
+ * 
+ * @param attachmentId
+ */
+function previewFile(attachmentId){
+	  /*$("#modalBoxFaderLayer").remove();
+	  $("body").append('<div style="background-color: black; opacity: 0.4; display: block;" id="modalBoxFaderLayer"></div>');
+	  $("#modalBoxFaderLayer").html('<div id="modalBoxAjaxLoader" style="color: white">文件预览加载中...</div>');
+	  $("#modalBoxFaderLayer").fadeIn("normal");*/
+	  modelAjax({
+		          type:"post",
+		          url:SYS_CONTEXT+"/smjFrame/attachment/attachment/getAttachmentById",
+		  		  data:{"id":attachmentId},
+		          dataType:"json",
+		  		  contentType: "application/x-www-form-urlencoded",
+		          success:function(data){
+			  	  	var attachmentData=data.dataObject;
+			  	  	if((attachmentData.name).indexOf(".flv")>=0||(attachmentData.name).indexOf(".mp4")>=0){// 视频文件
+			  	  		forward(SYS_CONTEXT+"/examSelfStudy/onlineVideoStudy/playVideoById", {"id": attachmentId}, "_blank");
+			  		  /*$("#modalBoxFaderLayer").fadeOut("low");*/
+			  	  	}else{// excel或者图片或者WORD文档
+			  	  	 forward(SYS_CONTEXT+"/smjFrame/attachment/attachment/previewBefore", {"id": attachmentId}, "_blank");
+			  		  /*$("#modalBoxFaderLayer").fadeOut("low");*/
+			  	  	}
+		          }/*,
+		          error:function(jqXHR){
+		             alert("发生错误："+ jqXHR.status);
+		          }*/
+	  		});
+	}
+/**
+ * 手机端预览
+ * @param id
+ * @param name
+ */
+function phonePreviewFile(id,name){
+	 if((name).indexOf(".flv")>=0||(name).indexOf(".mp4")>=0){// 视频文件
+		var url = "/phone/learningCourseware/playVideoById";
+		openPostWindow(url, {"id":id}, "_self");
+ 	}else{// excel或者图片或者WORD文档
+ 		var url = "/phone/learningCourseware/previewBefore";
+		openPostWindow(url, {"id":id}, "_self");
+ 	}
+}
+/**
+ * 打开一个新的窗口
+ * 
+ * @param action
+ * @param paramMap
+ * @param target
+ */
+function forward(action, paramMap, target) {
+  try {
+    var formObj = $("<form>");
+    formObj.attr("method", "post");
+    formObj.attr("action", action);
+    // 默认_self
+    formObj.attr("target", target || "_self");
+    
+    for (var paramKey in paramMap) {
+      var paramObj = $("<input>");
+      paramObj.attr("type", "hidden");
+      paramObj.attr("name", paramKey);
+      paramObj.val(paramMap[paramKey]);
+      formObj.append(paramObj);
+    }
+    $("body").append(formObj);
+    formObj.submit();
+    formObj.remove();
+  } catch (e) {
+    ;
+  }
+}
+
+/**
+ * 删除文件
+ * 
+ * @param attachmentId
+ *            附件id
+ * @param object
+ */
+var attachemntDeleteMessage="确认删除选中的文件?";
+function deleteAttachment(attachmentId,object){
+	BootstrapDialog.confirm({
+		message:attachemntDeleteMessage,
+		type: BootstrapDialog.TYPE_WARNING,
+		callback:function(result){
+    		if(result){
+    			modelAjax({
+    				url:SYS_CONTEXT+"/smjFrame/attachment/attachment/deleteAttachment",
+    				data:{ids:attachmentId},
+    				type:'post',
+    				dataType:'json',
+    				success:function(data){
+    					if(data.result==SUCCESS){
+    						$(object).parent().remove();
+    						notyOptions.text=data.message;
+    						notyOptions.type="success";
+    					}else{
+    						notyOptions.text=data.message;
+    						notyOptions.type="error";
+    		    	        noty(notyOptions);
+    					}
+    				}
+    			});
+    		}
+		}
+	});
+}
+
+function loadAttachmentTable($attachmentTable,attachmentBusinessCodeId,businessId,sessionId){
+	$(".abroadAttachment",$attachmentTable).each(function(){
+		$uploadObj=$(this);
+		var attachmentCategoryId=$uploadObj.attr("id");
+		$ge("#"+attachmentCategoryId).uploadify('destroy');
+// destroyUplodifyById(attachmentCategoryId);
+	});
+	$.ajax({
+		url:SYS_CONTEXT+"/smjFrame/attachment/attachment/loadAttachmentTable",
+		dateType:"html",
+		type:"POST",
+		success:function(html){
+			$attachmentTable.html(html);
+			var queueID=new Date().getTime();
+			$attachmentTable.prepend("<div class=\"attachmentTableQueue\" id=\""+queueID+"\"></div>");
+			$(".abroadAttachment",$attachmentTable).each(function(){
+				$uploadObj=$(this);
+				var attachmentCategoryId=$uploadObj.attr("id");
+				initUploadFile($uploadObj,businessId,attachmentCategoryId,attachmentBusinessCodeId,sessionId,$attachmentTable,queueID);
+			});
+			
+			$(".deleteAttachment",$attachmentTable).click(function(){
+				$tr=$(this).parent().parent();
+				var attachmentId=$("#attachmentId",$tr).val();
+				deleteAttachment(attachmentId,$attachmentTable,attachmentBusinessCodeId,businessId,sessionId);
+			});
+		},
+		data:{
+			attachmentBusinessCodeId:attachmentBusinessCodeId,
+			businessId:businessId
+		}
+	});
+	
+	/**
+	 * 上传表格页面上传附件
+	 */
+	function initUploadFile(iconObj,businessId,attachmentCategoryId,attachmentBusinessCodeId,sessionId,$attachmentTable,queueID){
+	  var setting={
+			"uploadJqObj":$(iconObj),// 上传控件Jquery对象
+		 	"uploader":SYS_CONTEXT+"/smjFrame/attachment/attachment/uploadAttachment2",// 上传地址
+		 	"jsessionid":sessionId,// session ID
+		 	"uploadComplete":function(){
+		 		// 加载上传表格页面
+		 		loadAttachmentTable($attachmentTable,attachmentBusinessCodeId,businessId,sessionId);
+		 	},
+		 	"data":function(file,uploadifyObj){// 传递的其他数据，返回json格式
+		 		var data={};
+		 		data.businessId=businessId;
+		 		data.attachmentBusinessCodeId=attachmentBusinessCodeId;
+		 		data.attachmentCategoryId=attachmentCategoryId;
+		 		return data;
+		 	},
+		 	"buttonClass":"jh_uploadIcon_plus fa fa-plus-circle ",
+		 	"queueID":queueID
+		};
+		initUploadify(UPLOADIFY_TYPE_ICON,setting);
+	}
+	
+	/**
+	 * 删除附件表中的附件
+	 */
+	function deleteAttachment(attachmentId,$attachmentTable,attachmentBusinessCodeId,businessId,sessionId){
+		BootstrapDialog.confirm({
+    		message:'确认删除该附件',
+			type: BootstrapDialog.TYPE_WARNING,
+			callback:function(result){
+				if(result){
+					$.ajax({
+						url:SYS_CONTEXT+"/smjFrame/attachment/attachment/deleteAttachment",
+						dateType:"json",
+						type:"POST",
+						success:function(data){
+							if(data.result==SUCCESS){
+								loadAttachmentTable($attachmentTable, attachmentBusinessCodeId, businessId, sessionId);
+							}
+						},
+						data:{
+							ids:attachmentId
+						}
+					});
+				}
+			}
+    	});
+	}
+}
+
+/**
+ * 参数转换 ，为每个键值增加特定的名称前缀，用户把多表单的参数合并，一次性提交，可见单人出访提交
+ * 
+ * @param inputParam
+ *            表单序列化后的字符串
+ * @param addStr
+ *            为每个键值的名称添加的字符
+ * @param notTransformParamPrefix
+ *            不进行转换的数据的名称前缀，多个用逗号隔开，无则不传递，不要传递空值
+ */
+function transformParam(inputParam,addStr,notTransformParamPrefix){
+	var dealTaskString="";
+	var sendValueArr=inputParam.split("&");
+// console.log(notTransformParamPrefix);
+// console.log(inputParam);
+	for(var i=0;i<sendValueArr.length;i++){
+		var sendValue=sendValueArr[i];
+		var key=sendValue.split("=")[0];
+		var value=sendValue.split("=")[1];
+		var keyPrefix="";
+		if(key.indexOf(".")>0)// key为前缀.属性的方式，则判断是否属性在不转换的前缀中
+			keyPrefix=key.split(".")[0];
+		else
+			keyPrefix=key;
+		if(notTransformParamPrefix&&(","+notTransformParamPrefix+",").indexOf(","+keyPrefix+",")>=0){
+			dealTaskString+=key+"="+value;
+		}else{
+			dealTaskString+=addStr+key+"="+value;
+		}
+		if(i!=sendValueArr.length-1)
+			dealTaskString+="&";
+	}
+	return dealTaskString;
+}
+
+/**
+ * 打开审核详情界面
+ * 
+ * @param businessId
+ *            业务数据id
+ * @param businessCode
+ *            业务编码
+ * @param processCode
+ *            流程编码
+ */
+function openAuditOpinionList(businessId,businessCode,processCode){
+	window.open(SYS_CONTEXT+"/smjFrame/bpm/processRecord/showDetail?businessId="+businessId+"&businessCode="+businessCode+"&processCode="+processCode);
+}
+
+/**
+ * 打开审核流程图
+ */
+function openAuditImage(processDefinitionId,processInstanceId){
+	window.open(SYS_CONTEXT+"/activiti/diagram-viewer/index.jsp?processDefinitionId="+processDefinitionId+"&processInstanceId="+processInstanceId);
+}
+
+/**
+ * 销毁页面上的上传控件，如不在关闭前销毁，在IE9下会抛异常
+ * 
+ * @param domScopeId
+ *            指定上传控件所在的区域id，通常都会指定在某个div下的上传元素需要注销
+ */
+function destroyUplodify(domScopeId,fun){
+	var itemLength=$(".uploadify",$ge("#"+domScopeId)).length;
+// console.log(itemLength);
+	$(".uploadify",$ge("#"+domScopeId)).each(function(){
+		$ge('#'+$(this).attr("id")).uploadify('settings','onDestroy',
+			function(){
+// itemLength--;
+				$ge("input[id='"+$(this).attr("id")+"'][type='file']").remove();
+			}
+		);
+		$ge('#'+$(this).attr("id")).uploadify('destroy');
+	});
+// console.log("time::"+0.2*itemLength);
+	setTimeout(fun,100*itemLength);
+	// console.log("mylength...."+$(".uploadify",$ge("#"+domScopeId)).length);
+	/*
+	 * if(itemLength==0){ console.log("break......."); }
+	 */
+}
+
+/**
+ * 销毁页面上的上传控件，如不在关闭前销毁，在IE9下会抛异常
+ * 
+ * @param uploadifyId
+ *            指定上传控件所在的区域id，通常都会指定在某个div下的上传元素需要注销
+ */
+function destroyUplodifyById(uploadifyId){
+	console.log("des.....");
+	$ge("#"+uploadifyId).uploadify('settings','onDestroy',
+		function(){
+			$ge("input[id='"+uploadifyId+"'][type='file']").remove();
+		}
+	);
+	$ge("#"+uploadifyId).uploadify('destroy');
+	/*
+	 * var clear=false; for(var i=0;;i++){ if(!clear){
+	 * $ge("#"+uploadifyId).uploadify('destroy'); clear=true; }
+	 * //setTimeout("(function(){console.log('haha....')})()",2000);
+	 * if($("#"+$fId(uploadifyId)+".uploadify").length==0){
+	 * console.log("destroy......."); break; } }
+	 * $ge("input[id='"+uploadifyId+"'][type='file']").remove();
+	 */
+}
+
+/**
+ * 打开新的窗口，数据以POST 方式传递
+ * 
+ * @param url
+ *            URL不需要带上下文路径
+ * @param jsonData
+ *            以json形式传递的额外数据
+ * @param target
+ *            窗口打开方式，不指定或为空时或_blank时，由程序自动生成窗口名称,注意target为"_self"是在本窗口打开
+ */
+// function openPostWindow(url, jsonData,target,targetWindowData){
+function openPostWindow(url, jsonData,target){
+   var windowName="";
+   var $tempForm = $("<form>");  
+   $tempForm[0].id="tempForm1";  
+   $tempForm[0].method="post";
+// console.log("url::"+url);
+   $tempForm[0].action=SYS_CONTEXT+url;
+   if(target!=undefined&&target!=null&&target!=""){
+	   $tempForm[0].target=target;
+   }else{
+	   windowName="win"+nowTime();
+	   $tempForm[0].target=windowName;
+   }
+// console.log($tempForm.html());
+   if(jsonData!=undefined&&jsonData!=null){
+	   $.each(jsonData,function(key,value){
+		   if(jQuery.type(value)=== "array"){
+			   $.each(value,function(index,val){
+				   var $input=$("<input type='hidden'>");
+				   $input[0].name=key;
+				   $input[0].value=val;
+				   $tempForm[0].appendChild($input[0]);
+			   });
+		   }else{
+			   var $input=$("<input type='hidden'>");
+			   $input[0].name=key;
+			   $input[0].value=value;
+			   $tempForm[0].appendChild($input[0]); 
+		   }
+	   });
+   }
+// console.log($tempForm.html());
+   $("body").append($tempForm);
+// console.log($tempForm.html());
+// console.log($tempForm[0]);
+// window.open('about:blank',windowName);
+   // console.log($tempForm.attr("target"));
+   var targetWindow=null;
+   $tempForm.submit(function(){
+	   // IE下需要打开新窗口后提交到页面，否则在关闭时会弹关闭提示
+	   if ((navigator.userAgent.indexOf('MSIE') >= 0)
+		    && (navigator.userAgent.indexOf('Opera') < 0)){
+		   if(target==undefined||(target!=undefined&&target!=null&&target!='_self'))
+			   targetWindow=window.open('about:blank',windowName)
+		   else
+			   targetWindow=window;
+		}
+   }).trigger("submit");
+   /*
+	 * if(targetWindowData!=undefined&&targetWindowData!=null){
+	 * $.each(targetWindowData,function(key,val){ alert(targetWindowData);
+	 * targetWindow[key]=val; }); }
+	 */
+   $tempForm.remove();
+}
+
+/**
+ * 刷新打开窗口的表格
+ * 
+ * @param tableParamName
+ *            表格对象参数名称
+ */
+function refreshParentTable(tableParamName){
+// $("#"+tableId,window.opener.document).DataTable().draw(false);
+	if(window.opener&&window.opener[tableParamName]){
+// console.log(window.opener[tableParamName]);
+		window.opener[tableParamName].draw(false);
+	}
+}
+
+/**
+ * 用于成功提交后，关闭窗口并在父窗口显示提示语,注意提示的样式为成功处理的样式。
+ * 
+ * @param message
+ *            提示语
+ */
+function closeAndTip(message){
+	notyOptions.type=NOTY_SUCCESS;
+	notyOptions.text=message;
+	// 防止父窗口被关，窗口不能正确关闭
+	if(window.opener){
+		window.opener.noty(notyOptions);
+	}
+	window.close();
+}
+
+/**
+ * 父窗口提示信息
+ * 
+ * @param message
+ */
+function closeWindow(){
+	window.close();
+}
+
+function toLabelSelectPicker($selectpicker){
+	$selectpicker.selectpicker('hide');
+	var text=$selectpicker.find("option:selected").text();
+	$selectpicker.parent().append("<p class=\"form-control-static\">"+text+"</p>");
+}
+
+/**
+ * 初始化验证参数
+ * 
+ * @param fileds
+ *            对应fileds参数
+ * @param excluded
+ *            对应excluded参数 ，不传的时候默认为不校验disabled，hiden 及 unvisiable的数据
+ *            依照官网提供的API，默认排除 ':disabled, :hidden, :not(:visible)'的校验。
+ *            如果需要校验则可以自行设置，如使用 Bootstrap Select 时如需校验控件 ，则excluded需要设置为
+ *            ':disabled' 即只排除disabled元素的校验
+ */
+function initValidOption(fields,excluded){
+	console.log("excluded...");
+	console.log(excluded);
+	var passOption={
+			fields:fields
+	};
+	if(excluded!=undefined&&excluded!=null)
+		passOption.excluded=excluded;
+	var baseOption={
+			framework: 'bootstrap',
+	        locale: 'zh_CN',
+	        icon: {
+// valid: 'glyphicon glyphicon-ok',
+// invalid: 'glyphicon glyphicon-remove',
+	        	// 不显示图标，页面会很乱
+	        	valid: 'glyphicon ',
+	            invalid: 'glyphicon ',
+	            validating: 'glyphicon glyphicon-refresh'
+	        },
+	        fields: {
+	        	
+	        }
+	};
+	return $.extend(true,baseOption,passOption);
+}
+
+/**
+ * 提交表单，在提交时加遮罩效果
+ * 
+ * @param $form
+ *            表单jquery对象
+ * @param $clickBut
+ *            提交表单点击按钮 ，在点击时会被禁用，提交完成后可以点击
+ * @param ajaxParam
+ *            表单提交的ajax参数，遵循ajaxSubmit提供的支持
+ */
+function $submitForm($form,$clickBut,ajaxParam){
+	var modelAjaxParam=initModelAjaxParam(ajaxParam,$clickBut,$form);
+// console.log("modelAjaxParam...");
+// console.log(modelAjaxParam);
+	$form.ajaxSubmit(modelAjaxParam);
+}
+
+/**
+ * 带遮罩的ajax提交效果
+ * 
+ * @param ajaxParam
+ */
+function modelAjax(ajaxParam){
+	var modelAjaxParam=initModelAjaxParam(ajaxParam);
+	$.ajax(modelAjaxParam);
+}
+
+function initModelAjaxParam(ajaxParam,$clickBut,$form){
+	var modelParam={
+		beforeSend:function(){
+			if($clickBut)
+				$clickBut.attr("disabled",true);
+			$("#modalBoxFaderLayer").remove();
+// console.log('beforeSend:function:::');
+			$("body").append('<div style="background-color: rgb(0, 0, 0); opacity: 0.4; display: block;" id="modalBoxFaderLayer"></div>');
+			$("#modalBoxFaderLayer").html('<div id="modalBoxAjaxLoader" style="color:white">处理中...</div>');
+			$("#modalBoxFaderLayer").fadeIn("normal");
+		},
+		complete:function(){
+// $("#modalBoxFaderLayer").fadeOut("low");
+		},
+		error:function(){
+			$("#modalBoxFaderLayer").fadeOut("low");
+			notyOptions.type=NOTY_ERROR;
+			notyOptions.text="程序处理异常...";
+			noty(notyOptions);
+		},
+		type:'POST'
+	};
+	$.extend(true,modelParam,ajaxParam);
+	modelParam.success=function(data, textStatus, jqXHR){
+		$("#modalBoxFaderLayer").fadeOut("low");
+		if($clickBut)
+			$clickBut.attr("disabled",false);
+		// 提交完成后将提交标识位重置为非提交
+		if($("#"+OPT_SUBMIT,$form).size()>0){
+			$("#"+OPT_SUBMIT,$form).val(FALSE);
+		}
+		ajaxParam.success(data, textStatus, jqXHR);
+	};
+	return modelParam;
+}
+/**
+ * 初始化形式为 开始-结束日期的日期控件
+ * 
+ * @param $start
+ *            日期开始空间的jquery对象
+ * @param $end
+ *            日期结束控件的jquery对象
+ * @param configParam
+ *            日期控件的参数，如是否默认显示当前日期等，见 defaultConfigParam
+ */
+function initTimeScope($start,$end,configParam){
+	if($start.size()==0||$end.size()==0)
+		return;
+	var defaultConfigParam={
+		doChange:function(){},// 日期变化触发函数，例如，计算天数
+		showClear:true,// 是否显示日期清除按钮
+		format:null,// 日期的格式，必须传入
+		useCurrent:false,// 点击时是否自动带出当前日期
+		// 需传入验证的表单id
+		validateFormId:null
+	};
+	var config={};
+	$.extend(true,config,defaultConfigParam,configParam);
+	var config1={};
+	$.extend(true,config1,defaultConfigParam,configParam);
+	delete config1["doChange"];
+	delete config1["validateFormId"];
+	$start.datetimepicker(config1);
+	$end.datetimepicker(config1);
+	if($start.val()!=''){
+		$end.data("DateTimePicker").minDate($start.val());
+	}
+	if($end.val()!=''){
+		$start.data("DateTimePicker").maxDate($end.val());
+	}
+	$start.on("dp.change", function (e) {
+    	if($(this).val()!='')
+    		$end.data("DateTimePicker").minDate(e.date);
+    	else
+    		$end.data("DateTimePicker").minDate(false);
+    	config.doChange();
+    });
+	$end.on("dp.change", function (e) {
+    	if($(this).val()!='')
+    		$start.data("DateTimePicker").maxDate(e.date);
+    	else
+    		$start.data("DateTimePicker").maxDate(false);
+    	config.doChange();
+    });
+	if(configParam["validateFormId"]){
+		$start.on('dp.change dp.show dp.hide', function(e) {
+			$ge("#"+configParam["validateFormId"]).formValidation('revalidateField', $(this));
+	    });
+		$end.on('dp.change dp.show dp.hide', function(e) {
+			$ge("#"+configParam["validateFormId"]).formValidation('revalidateField', $(this));
+	    });
+	}
+}
+
+/** *****下载附件表格部件start******** */
+/**
+ * @param uploadCallback
+ *            上传成功后，自定义的回调函数
+ * @param deleteCallback
+ *            删除成功后，自定义回调函数
+ */
+function initAttachmentTable(attachmentObj){
+  // $attachmentTableWrap,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback
+// console.log("$attachmentTableWrap -> " +
+// attachmentObj.$attachmentTableWrap.attr("id"));
+  console.log("initAttachmentTable::groups::" + attachmentObj.groups);
+	$(".attachmentElement", attachmentObj.$attachmentTableWrap).each(function(){
+		var queueID=$(".attachmentTableQueue", attachmentObj.$attachmentTableWrap).attr("id");
+		console.log("initAttachmentTable::queueID::" + queueID);
+		// 将所配置的文件类型，转换成要求的格式
+
+		var fileTypes_ = $(this).parent().find("[name=fileType]").val();
+		var fileType = "*.*";
+		if (!(null == fileTypes_ || undefined == fileTypes_ || fileTypes_.replace(new RegExp(" ", "gm"), "").length == 0)) {
+		  fileType = "";
+		  var fileTypes = fileTypes_.split(",");
+		  for (var i = 0; i < fileTypes.length; i++) {
+		    if (fileType.replace(new RegExp(" ", "gm"), "").length > 0) {
+		      fileType += ";";
+		    }
+		    fileType += "*." + fileTypes[i];
+		  }
+		}
+		
+		var $catagoryIndexObj = $(this).parent().find("[name=index]");
+		try {
+	    if (!(null == attachmentObj.isFirstInit || undefined == attachmentObj.isFirstInit) && attachmentObj.isFirstInit) {
+	      console.log("initAttachmentTable::isFirstInit::" + attachmentObj.isFirstInit);
+	      loadHistoryDataInFileUploadInit($catagoryIndexObj, $(this).parent().parent().parent());
+	    }
+	  } catch (e) {
+	    console.log("initAttachmentTable::loadHistoryDataInFileUploadInit::exception: " + e);
+	  }
+		
+		initAttachmentTableUploadFile({
+		  "$iconObj": $(this),
+		  "index": $catagoryIndexObj.val(),
+		  "businessId": attachmentObj.businessId,
+		  "attachmentBusinessCodeId": attachmentObj.attachmentBusinessCodeId,
+		  "attachmentCategoryId": $(this).attr("id"),
+		  "groups": attachmentObj.groups,
+		  "english":attachmentObj.english,
+		  "fileSize": (parseFloat($(this).parent().find("[name=fileSize]").val()) || 0) + "MB",
+		  "uploadLimit": $(this).parent().find("[name=uploadLimit]").val(),
+		  "allFileSize": $(this).parent().find("[name=allFileSize]").val(),
+		  "pixel": $(this).parent().find("[name=pixel]").val(),
+		  "fileType": fileType,
+		  "sessionId": attachmentObj.sessionId,
+		  "$attachmentTable": attachmentObj.$attachmentTableWrap,
+		  "queueID": queueID,
+		  "uploadCallback": attachmentObj.uploadCallback,
+		  "deleteCallback": attachmentObj.deleteCallback
+		});
+// initAttachmentTableUploadFile($uploadObj,businessId,attachmentBusinessCodeId,attachmentCategoryId,groups,sessionId,$attachmentTableWrap,queueID,uploadCallback,deleteCallback);
+// destroyUplodifyById(attachmentCategoryId);
+	});
+	
+	$(".deleteAttachment", attachmentObj.$attachmentTableWrap).click(function(){
+		$tr=$(this).parent().parent();
+		var attachmentId=$("#attachmentId",$tr).val();
+		deleteAttachmentTableItem({
+		  "attachmentId": attachmentId,
+		  "$attachmentTableWrap": attachmentObj.$attachmentTableWrap,
+		  "index": fileCacheMap.relatives[attachmentId],
+		  "businessId": attachmentObj.businessId,
+		  "attachmentBusinessCodeId": attachmentObj.attachmentBusinessCodeId,
+		  "groups": attachmentObj.groups,
+		  "english": attachmentObj.english,
+      "sessionId": attachmentObj.sessionId,
+      "uploadCallback": attachmentObj.uploadCallback,
+      "deleteCallback": attachmentObj.deleteCallback
+		});
+// deleteAttachmentTableItem(attachmentId,$attachmentTableWrap,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback);
+	});
+}
+
+function loadHistoryDataInFileUploadInit($catagoryIndexObj, $fileNameRowObj) {
+  var iIndex = $catagoryIndexObj.val();
+  fileCacheMap[iIndex] = {};
+  fileCacheMap[iIndex]["files"] = {};
+  fileCacheMap[iIndex]["relatives"] = {};
+  fileCacheMap[iIndex]["count"] = 0;
+  fileCacheMap[iIndex]["size"] = 0; // 字节B
+  
+  var startTrObj = $fileNameRowObj;
+  for (var currTrObj = startTrObj; currTrObj.index() == startTrObj.index() || 0 != currTrObj.size() && 0 == currTrObj.find(".attachmentElement").size(); currTrObj = currTrObj.next()) {
+    var currAttachmentId = currTrObj.children().eq(2).find("input:hidden[name=attachmentId]").val();
+    if (null == currAttachmentId || undefined == currAttachmentId || currAttachmentId.replace(new RegExp(" ", "gm"), "").length == 0) {
+      break;
+    }
+    var aFileSize = parseInt(currTrObj.children().eq(2).find("input:hidden[name=attachmentFileSize]").val()) || 0;
+    var aFileName = currTrObj.children().eq(2).find("[name=displayedFileName]").html().replace(new RegExp(" ", "gm"), "").replace(new RegExp("\n", "gm"), "").replace(new RegExp("\t", "gm"), "");
+    fileCacheMap[iIndex].files[aFileName] = { "size": aFileSize };
+    fileCacheMap[iIndex].relatives[currAttachmentId] = aFileName;
+    fileCacheMap[iIndex].count++;
+    fileCacheMap[iIndex].size += aFileSize;
+    fileCacheMap.relatives[currAttachmentId] = iIndex;
+  }
+}
+
+function reloadAttachmentTable(paramObj){
+  // $attachmentTableWrap,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback
+	console.log("reloadAttachmentTable groups" + paramObj.groups + "::group_end");
+	console.log(paramObj.$attachmentTableWrap);
+	// 重载前，销毁当前页面上的上传控件
+	$(".attachmentElement", paramObj.$attachmentTableWrap).each(function(){
+		$ge("#" + $(this).attr("id")).uploadify('destroy');
+// destroyUplodifyById(attachmentCategoryId);
+	});
+	$.ajax({
+		url:SYS_CONTEXT+"/smjFrame/attachment/attachment/loadAttachmentTable",
+		dateType:"html",
+		type:"POST",
+		success:function(html){
+		  paramObj.$attachmentTableWrap.html(html);
+			/*
+			 * var queueID=new Date().getTime(); //$attachmentTable.prepend("<div
+			 * class=\"attachmentTableQueue\" id=\""+queueID+"\"></div>");
+			 * $(".abroadAttachment",$attachmentTableWrap).each(function(){
+			 * $uploadObj=$(this); var
+			 * attachmentCategoryId=$uploadObj.attr("id");
+			 * initAttachmentTableUploadFile($uploadObj,businessId,attachmentCategoryId,attachmentBusinessCodeId,sessionId,$attachmentTableWrap,queueID);
+			 * });
+			 * 
+			 * $(".deleteAttachment",$attachmentTableWrap).click(function(){
+			 * $tr=$(this).parent().parent(); var
+			 * attachmentId=$("#attachmentId",$tr).val();
+			 * deleteAttachmentTableItem(attachmentId,$attachmentTableWrap,attachmentBusinessCodeId,businessId,sessionId);
+			 * });
+			 */
+			console.log("$attachmentTableWrap::");
+			console.log(paramObj.$attachmentTableWrap);
+			console.log("attachmentBusinessCodeId::" + paramObj.attachmentBusinessCodeId);
+			console.log("businessId::" + paramObj.businessId);
+			initAttachmentTable({
+			  "$attachmentTableWrap": paramObj.$attachmentTableWrap,
+	      "businessId": paramObj.businessId,
+	      "attachmentBusinessCodeId": paramObj.attachmentBusinessCodeId,
+	      "groups": paramObj.groups,
+	      "english":paramObj.english,
+	      "sessionId": paramObj.sessionId,
+	      "uploadCallback": paramObj.uploadCallback,
+	      "deleteCallback": paramObj.deleteCallback
+	    });
+// initAttachmentTable($attachmentTableWrap,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback);
+			$('[data-toggle="tooltip"]', paramObj.$attachmentTableWrap).tooltip();
+		},
+		data:{
+			tableWrapId: paramObj.$attachmentTableWrap.attr("id"),
+			attachmentBusinessCodeId: paramObj.attachmentBusinessCodeId,
+			businessId: paramObj.businessId,
+			groups: paramObj.groups,
+			english:paramObj.english,
+			t:new Date().getTime(),
+			reload:TRUE
+		}
+	});
+}
+
+/**
+ * 上传表格页面上传附件
+ */
+function initAttachmentTableUploadFile(uploadFileObj){
+	console.log("initAttachmentTableUploadFile groups::" + uploadFileObj.groups);
+	console.log("initAttachmentTableUploadFile queueID::" + uploadFileObj.queueID);
+	var setting={
+		"uploadJqObj": uploadFileObj.$iconObj,// 上传控件Jquery对象
+	 	"uploader": SYS_CONTEXT + "/smjFrame/attachment/attachment/uploadAttachment2",// 上传地址
+	 	"jsessionid": uploadFileObj.sessionId,// session ID
+	 	"fileSizeLimit": uploadFileObj.fileSize || 0, // 一个文件的大小,未设置则为默认最大上限，下同
+	 	"uploadLimit": 5,// 只能是在单次选择上传文件之个数的限制，但不能控制整个要上传文件的累加总个数，因此不能通过这个参数来控制，而在此增加此选项，是为了控制一次的上传的并发量
+	 	"fileTypeExts": uploadFileObj.fileType || "*.*",
+	 	"uploadComplete":function(){
+	 		// 加载上传表格页面
+	 		reloadAttachmentTable({
+	 		  "$attachmentTableWrap": uploadFileObj.$attachmentTable,
+	 		  "businessId": uploadFileObj.businessId,
+	 		  "attachmentBusinessCodeId": uploadFileObj.attachmentBusinessCodeId,
+	 		  "groups": uploadFileObj.groups,
+	 		  "sessionId": uploadFileObj.sessionId,
+	 		  "uploadCallback": uploadFileObj.uploadCallback,
+	 		  "deleteCallback": uploadFileObj.deleteCallback,
+	 		  "english":uploadFileObj.english
+	 		});
+// reloadAttachmentTable($attachmentTable,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback);
+	 		if(uploadFileObj.uploadCallback){
+// console.log("uploadCallback::"+uploadCallback);
+	 		 uploadFileObj.uploadCallback();
+	 		}
+	 	},
+	 	"onSelect": function(file) {
+	 	  return onSelect_fileUploadify(uploadFileObj, file);
+	 	},
+	 	"data":function(file,uploadifyObj){// 传递的其他数据，返回json格式
+	 		var data={};
+	 		data.businessId = uploadFileObj.businessId;
+	 		data.attachmentBusinessCodeId = uploadFileObj.attachmentBusinessCodeId;
+	 		data.attachmentCategoryId = uploadFileObj.attachmentCategoryId;
+	 		data.english = uploadFileObj.english;
+	 		return data;
+	 	},
+	 	"buttonClass":"jh_uploadIcon_plus fa fa-plus-circle ",
+	 	"queueID":uploadFileObj.queueID
+	};
+	initUploadify(UPLOADIFY_TYPE_ICON,setting,uploadFileObj.index);
+}
+
+function onSelect_fileUploadify(uploadFileObj, file) {
+  console.log("initAttachmentTableUploadFile onSelect before : " + uploadFileObj.index + " - " + fileCacheMap[uploadFileObj.index].count + " / " + uploadFileObj.uploadLimit);
+  console.log("initAttachmentTableUploadFile onSelect after : " + fileCacheMap[uploadFileObj.index].size + " B / " + (uploadFileObj.allFileSize * 1024 * 1024) + " B");
+  if ((0 == uploadFileObj.uploadLimit || fileCacheMap[uploadFileObj.index].count < uploadFileObj.uploadLimit) 
+		 && (null == fileCacheMap[uploadFileObj.index].files[file.name] 
+		 		 || undefined == fileCacheMap[uploadFileObj.index].files[file.name]) 
+		 && (null == uploadFileObj.allFileSize || undefined == uploadFileObj.allFileSize 
+				 || 0 == uploadFileObj.allFileSize 
+				 || fileCacheMap[uploadFileObj.index].size + file.size <= uploadFileObj.allFileSize * 1024 * 1024)) {
+   fileCacheMap[uploadFileObj.index].files[file.name] = { "size": file.size };
+   fileCacheMap[uploadFileObj.index].count++;
+   fileCacheMap[uploadFileObj.index].size += file.size;
+   console.log("initAttachmentTableUploadFile onSelect after : " + fileCacheMap[uploadFileObj.index].count);
+   console.log("initAttachmentTableUploadFile onSelect after : " + fileCacheMap[uploadFileObj.index].size + " B / " + (uploadFileObj.allFileSize * 1024 * 1024) + " B");
+   return true;
+  }
+  var errorMsg="";
+  if(uploadFileObj.uploadLimit!=0&&fileCacheMap[uploadFileObj.index].count >= uploadFileObj.uploadLimit){
+	  errorMsg="对不起，该附件分类下限值上传上传数量为"+uploadFileObj.uploadLimit+"！";
+  }else if(!(null == fileCacheMap[uploadFileObj.index].files[file.name] 
+	 || undefined == fileCacheMap[uploadFileObj.index].files[file.name])){
+	  errorMsg="对不起，附件分类下已包含相同名称的文件，不能重复上传！";
+  }else if(!(null == uploadFileObj.allFileSize || undefined == uploadFileObj.allFileSize 
+				 || 0 == uploadFileObj.allFileSize 
+				 || fileCacheMap[uploadFileObj.index].size + file.size <= uploadFileObj.allFileSize * 1024 * 1024)){
+	  errorMsg="对不起，分类下限制上传文件大小为"+uploadFileObj.allFileSize+"M！";
+  }
+  BootstrapDialog.alert({
+    "message": errorMsg,
+    "type": BootstrapDialog.TYPE_WARNING
+  });
+  uploadFileObj.$iconObj.uploadify("cancel", file.id);
+  console.log("initAttachmentTableUploadFile onSelect - cancel: " + file.id + " - " + file.name);
+  return true;
+}
+
+/**
+ * 删除附件表中的附件
+ */
+var deleteAttachmentMessage = "确认删除该附件";
+function deleteAttachmentTableItem(paramObj){
+  // attachmentId,$attachmentTableWrap,businessId,attachmentBusinessCodeId,groups,sessionId,uploadCallback,deleteCallback
+// console.log("uploadCallback:"+uploadCallback);
+// console.log("deleteCallback:"+deleteCallback);
+	BootstrapDialog.confirm({
+		message:deleteAttachmentMessage,
+		type: BootstrapDialog.TYPE_WARNING,
+		callback:function(result){
+			if(result){
+				modelAjax({
+					url:SYS_CONTEXT+"/smjFrame/attachment/attachment/deleteAttachment",
+					dateType:"json",
+					type:"POST",
+					success:function(data){
+						if(data.result==SUCCESS){
+						  console.log("deleteAttachmentTableItem success :: before : " + paramObj.index);
+						  console.log("deleteAttachmentTableItem success :: before : " + fileCacheMap[paramObj.index].count);
+						  console.log("deleteAttachmentTableItem success :: before : " + fileCacheMap[paramObj.index].size + " B");
+						  var fileName = fileCacheMap[paramObj.index].relatives[paramObj.attachmentId];
+						  fileCacheMap[paramObj.index].count--;
+						  fileCacheMap[paramObj.index].size -= fileCacheMap[paramObj.index].files[fileName].size;
+						  fileCacheMap[paramObj.index].files[fileName] = fileCacheMap[paramObj.index].relatives[paramObj.attachmentId] = fileCacheMap.relatives[paramObj.attachmentId] = undefined;
+						  console.log("deleteAttachmentTableItem success :: after : " + fileCacheMap[paramObj.index].count);
+						  console.log("deleteAttachmentTableItem success :: after : " + fileCacheMap[paramObj.index].size + " B");
+						  
+						  // 默认自动刷新当前页面中的该区域部分
+						  if (null == paramObj.isReloadContent || undefined == paramObj.isReloadContent || paramObj.isReloadContent) {
+						    reloadAttachmentTable({
+						      "$attachmentTableWrap": paramObj.$attachmentTableWrap,
+						      "businessId": paramObj.businessId,
+						      "attachmentBusinessCodeId": paramObj.attachmentBusinessCodeId,
+						      "groups": paramObj.groups,
+						      "english": paramObj.english,
+						      "sessionId": paramObj.sessionId,
+						      "uploadCallback": paramObj.uploadCallback,
+						      "deleteCallback": paramObj.deleteCallback
+						    });
+						  }
+// reloadAttachmentTable($attachmentTableWrap,businessId,
+// attachmentBusinessCodeId, groups, sessionId,uploadCallback,deleteCallback);
+							if(paramObj.deleteCallback){
+							  paramObj.deleteCallback();
+					 		}
+						}
+					},
+					data:{
+						ids: paramObj.attachmentId
+					}
+				});
+			}
+		}
+	});
+}
+/** *****下载附件表格部件end******** */
+/**
+ * 检查页面上是否有待上传的附件
+ * 
+ * @param selectExpress
+ *            上传条目选择器限定表达式，如果不传递则查找页面所有的上传元素
+ */
+function checkUploadItem(selectExpress){
+	if($(".uploadify-queue-item").size()>0){
+		notyOptions.text="页面上有未上传的附件，请先保存数据再关闭";
+		notyOptions.type="warning";
+        noty(notyOptions);
+		return false;
+	}else
+		return true;
+}
+
+/**
+ * 校验附件表格中的所有必填附件，及附件的上传数量是否符合要求
+ * 
+ * @param attachmentTableId
+ */
+function validAttachmentTable(attachmentTableId){
+	var msg=$ge("#"+attachmentTableId+" #attachmentValidate").val();
+	if(msg=="")
+		return true;
+	else{
+		BootstrapDialog.alert({message:msg,type: BootstrapDialog.TYPE_WARNING});
+		return false;
+	}
+}
+/**
+ * 检查指定分类的业务附件是否存在
+ * 
+ * @param businessId
+ * @param attachmentCategoryId
+ * @returns DataMessageObj 如果存在则返回附件对象
+ */
+function checkUploadAttachment(businessId,attachmentCategoryId){
+	var returnVal=null;
+	$.ajax({
+		url:SYS_CONTEXT+"/smjFrame/attachment/attachment/checkAttachment",
+		type:'post',
+		dataType:'json',
+		data:{businessId:businessId,attachmentCategoryId:attachmentCategoryId},
+		async:false,
+		success:function(data){
+			returnVal=data;
+		}
+	});
+	return returnVal;
+}
+
+/**
+ * 初始化类别选项使他能够级联变化
+ * 
+ * @param parentId
+ *            父级元素id
+ * @param childrenId
+ *            子元素的id
+ * @param showPleaseOption
+ *            是否级联处的数据带请选择选项
+ */
+function initCategory(parentId,childrenId,showPleaseOption){
+	$ge("#"+parentId).change(function(){
+		var $this=$(this);
+		var setting={
+		  	id:childrenId,// select的id
+		  	url:"/smjFrame/baseData/getCategoryByParent",// 需要自己拼接项目路径
+		    data:{parentId:$this.val()},// 为ajax传递的数据,json格式
+		    textAttr:'name',// 解析出的对象中作为option的文字显示的属性
+		    valueAttr:'id',// 解析出的对象中作为option的值的属性
+		    removeFirstOption:!showPleaseOption,// 是否移除第一个选项
+		    callback:function(){
+		    		$ge("#"+childrenId).trigger("change");
+	    	    }
+	    };
+    	buildSelect(setting);
+    });
+}
+
+/**
+ * 重新定向
+ * 
+ * @param url
+ *            重定向的地址 不需要带上下文路径
+ * @param param
+ *            重定向的参数 以json形式传递的额外数据
+ */
+function redirect(url,param){
+	openPostWindow(url, jsonData,"_self");
+}
+
+/**
+ * 公共的模态框 url menu所传的url 无web信息
+ */
+function commonDialog(title,url){
+	var $commonDialog = BootstrapDialog.show({
+		title : title,
+		message: function(dialog) {
+			var $message = $('<div></div>');
+			var pageToLoad = dialog.getData('pageToLoad');
+        	$message.load(pageToLoad);
+			return $message;
+		},
+        data: {
+            'pageToLoad': SYS_CONTEXT+url
+        },
+        onshown : function(dialogRef){
+			
+		},
+		size: BootstrapDialog.SIZE_NORMAL,
+		buttons: [{
+			label: '关闭',
+			action: function(dialogItself){
+				dialogItself.close();
+			}
+		}]
+	});
+	return $commonDialog;
+}
+/**
+ * 显示附件说明完整信息
+ * 
+ * @param id
+ */
+function moreAttachmentInfo(id){
+	BootstrapDialog.show({
+        message: $ge("#"+id).html(),
+        title:"附件说明"
+    });
+}
+/**
+ * 校验只处理暂存时必须的字段
+ * 
+ * @param formId
+ *            校验表单的id
+ * @param baseValidOptions
+ *            保存校验需要的校验设置
+ */
+function processTempSave(formId,baseValidOptions){
+	var validOptions=$("#"+formId).data('formValidation').getOptions().fields;
+	$.each(validOptions,function(key,vOption){
+		var findInBase=false;
+		$.each(baseValidOptions,function(bKey,bVOption){
+			if(key==bKey){
+				findInBase=true;
+				return false
+			}
+		});
+		// 不在保存的基本验证中,则disabled该校验选项
+		if(!findInBase){
+			$("#"+formId).data('formValidation').enableFieldValidators(key,false,"notEmpty");
+		}
+	});
+}
+
+/**
+ * 提交时验证
+ * 
+ * @param formId
+ *            校验表单的id
+ * @param submitValidOptions
+ *            保存校验需要的校验设置
+ */
+function processSubmitSave(formId,submitValidOptions){
+	var validOptions=$("#"+formId).data('formValidation').getOptions().fields;
+	$.each(validOptions,function(key,vOption){
+		$.each(submitValidOptions,function(bKey,bVOption){
+			if(key==bKey){
+				$("#"+formId).data('formValidation').enableFieldValidators(key,true,"notEmpty");
+				return false;
+			}
+		});
+	});
+}
+
+/**
+ * 清理域内值
+ * 
+ * @param divId
+ *            清除区域的id
+ * @param 区域内的hidden元素是否清理
+ */
+function clearAreaValue(divId,hiddenClear){
+// console.log('clearAreaValue');
+	var notClearExp=":button, :submit, :reset";
+	if(!hiddenClear)
+		notClearExp+=",:hidden";
+// console.log($(':input','#'+divId).not(notClearExp).size());
+	$(':input','#'+divId) 
+	.not(notClearExp)
+	.val('')
+	.removeAttr('checked')
+	.removeAttr('selected');
+}

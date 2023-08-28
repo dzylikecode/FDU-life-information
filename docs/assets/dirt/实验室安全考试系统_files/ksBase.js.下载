@@ -1,0 +1,712 @@
+/**
+ * 获取一个Map对象
+ */
+function getMap() {// 初始化map_，给map_对象增加方法，使map_像个Map
+	var map_ = new Object();
+	// 属性加个特殊字符，以区别方法名，统一加下划线_
+	map_.put = function(key, value) {
+		map_[key + '_'] = value;
+	};
+	map_.get = function(key) {
+		return map_[key + '_'];
+	};
+	map_.remove = function(key) {
+		delete map_[key + '_'];
+	};
+	map_.keyset = function() {
+		var ret = "";
+		for ( var p in map_) {
+			if (typeof p == 'string' && p.substring(p.length - 1) == "_") {
+				ret += ",";
+				ret += p.substring(0, p.length - 1);
+			}
+		}
+		var retArr = new Array();
+		if (ret == "") {
+			return retArr; // empty array
+		} else {
+			retArr = ret.substring(1).split(",");
+			return retArr;
+		}
+	};
+	map_.size = function() {
+		return map_.keyset().length;
+	};
+	return map_;
+}
+
+/**
+ * 素材选择列表
+ */
+function materiaChoicelList(editor, data) {
+	var materialChoicelListInstance = BootstrapDialog.show({
+		title : '素材预览',
+		message : function(dialog) {
+			var $message = $('<div></div>');
+			var pageToLoad = dialog.getData('pageToLoad');
+			$message.load(pageToLoad);
+			return $message;
+		},
+		data : {
+			'pageToLoad' : SYS_CONTEXT + '/datasManagerment/material/materialDialog'
+		},
+		size : BootstrapDialog.SIZE_WIDE,
+		buttons : [ {
+			label : '确定',
+			action : function(dialogItself) {
+				if ($materialTable.rows('.selected').data().length == 0) {
+					BootstrapDialog.alert({
+						message : '请在表格中选择数据',
+						type : BootstrapDialog.TYPE_WARNING
+					});
+					return false;
+				} else {
+					var $rows = $materialTable.rows('.selected').data();
+					var idArr = new Array();
+					$.each($rows, function(i, row) {
+						var id = row["id"];
+						idArr.push(id);
+					});
+					var ids = idArr.join(",");
+					var url = SYS_CONTEXT + "/datasManagerment/questionsBank/getMaterialUrlViewList";
+					var dataObj = {
+						"ids" : ids
+					};
+					$.ajax({
+						type : "POST",
+						url : url,
+						dataType : 'json',
+						data : dataObj,
+						success : function(data) {
+							var url = "";
+							$(data).each(function(i, res) {
+								url += res.url;
+							});
+							// 不清空直接在最后添加
+							editor.setContent(url, true);
+						},
+						complete : function() {
+							// 销毁当前dialog
+							dialogItself.close();
+						}
+					});
+				}
+			}
+		}, {
+			label : '关闭',
+			action : function(dialogItself) {
+				dialogItself.close();
+			}
+		} ]
+	});
+}
+
+/**
+ * 素材预览
+ */
+function materialPreview(id) {
+	var materialInstance = BootstrapDialog.show({
+		title : '素材预览',
+		message : function(dialog) {
+			var $message = $('<div></div>');
+			var pageToLoad = dialog.getData('pageToLoad');
+			$message.load(pageToLoad);
+			return $message;
+		},
+		data : {
+			'pageToLoad' : SYS_CONTEXT + '/datasManagerment/material/materialMediaPlayer?id=' + id
+		},
+		size : BootstrapDialog.SIZE_WIDE,
+		buttons : [ {
+			label : '关闭',
+			action : function(dialogItself) {
+				dialogItself.close();
+			}
+		} ]
+	});
+}
+
+/**
+ * 预览知识点树
+ * 
+ * @param nodes
+ */
+function showKonwledgePointTree(nodes) {
+	var $knowledgePointTreeInstance = BootstrapDialog.show({
+		title : '知识点预览',
+		message : function(dialog) {
+			var $message = $('<div><ul id="knowledgePointTree" class="ztree"></ul></div>');
+			return $message;
+		},
+		onshown : function(dialogRef) {
+			var zTreeSetting = { // 异步加载树
+				data : {
+					simpleData : {
+						enable : true,
+						idKey : "id",
+						pIdKey : "pid",
+						rootPId : "0"
+					}
+				},
+				callback : {}
+			};
+			$.fn.zTree.init($("#knowledgePointTree"), zTreeSetting, nodes);
+		},
+		size : BootstrapDialog.SIZE_NORMAL,
+		buttons : [ {
+			label : '关闭',
+			action : function(dialogItself) {
+				dialogItself.close();
+			}
+		} ]
+	});
+}
+/**
+ * 显示选择的试题数
+ */
+function showTopicChooseCount(formatDataMap) {
+	var totalChooseCount = $("input[id='totalChooseCountInput']").val();
+	var hasChooseCount = $("input[id='hasChooseCountInput']").val();
+	var currentChooseCount = formatDataMap.size();
+	var needChooseCount = numeral(totalChooseCount) - (numeral(hasChooseCount) + numeral(currentChooseCount));
+
+	$ge("span[id='hasChooseCountSpan']").html(numeral(hasChooseCount) + numeral(currentChooseCount));
+	$ge("span[id='needChooseCountSpan']").html(needChooseCount);
+}
+
+/**
+ * 保存选中试题
+ */
+function topicChooseSave(formatData, url, $table) {
+	modelAjax({
+		url : url,
+		data : formatData,
+		type : "POST",
+		dataType : 'json',
+		success : function(data) {
+			$table.ajax.reload();// 刷新操作的Table
+		}
+	});
+}
+/**
+ * dataValue 上级主键id searchUrl 获取查询条件URL(redirect到topicChoose页面) saveUrl 保存值的URL
+ * $table 要刷新的表实例 选择试题
+ */
+var formatDataMap = null;
+function topicChoose(dataValue, searchUrl, saveUrl, $table) {
+	formatDataMap = getMap();// 每次打开都重新创建map
+	var topicChooseSearchView = {
+		"autoChooseTopicCount" : 2
+	};
+	var $paperLineLeadDialog = BootstrapDialog.show({
+		title : '试题选择页面',
+		message : function(dialog) {
+			var $message = $('<div></div>');
+			var pageToLoad = dialog.getData('pageToLoad');
+			$message.load(pageToLoad);
+			return $message;
+		},
+		data : {
+			'pageToLoad' : searchUrl + "?id=" + dataValue + "&jh_pk=" + $("#jh_pk").val() + "&jh_rc=" + $("#jh_rc").val() + "&jh_ac=" + $("#jh_ac").val() + "&jh_al=" + $("#jh_al").val() + "&jh_alt=" + $("#jh_alt").val()
+		},
+		onshown : function(dialogRef) {
+
+		},
+		onhide : function(dialogRef) {
+
+		},
+		size : BootstrapDialog.SIZE_WIDE,
+		buttons : [ {
+			label : '确定',
+			action : function(dialogItself) {
+				if ($ge("#scoreForm").data('formValidation').validate().isValid()) {
+					var formatData = {
+						"dataValue" : dataValue
+					};
+					var keys = formatDataMap.keyset();
+					$(keys).each(function(i, res) {
+						formatData["topicList[" + i + "].id"] = formatDataMap.get(res);
+					});
+					if ($ge("#topic.score").val() == "") {
+						// 未设置分数，默认1分
+						formatData["score"] = 1;
+					} else {
+						formatData["score"] = $ge("#topic.score").val();
+					}
+					// 提交选择信息
+					topicChooseSave(formatData, saveUrl, $table);
+					dialogItself.close();
+				}
+			}
+		}, {
+			label : '关闭',
+			action : function(dialogItself) {
+				dialogItself.close();
+			}
+		} ]
+	});
+
+	return $paperLineLeadDialog;
+}
+
+/**
+ * 公共的导入方法
+ */
+function commonImpFun(title, url, mapName, saveUrl) {
+	// 显示的url
+	if (url == null) {
+		url = SYS_CONTEXT + '/common/commonImp/commonImpIndex?mapName=' + mapName;
+	} else {
+		url = SYS_CONTEXT + url + "?mapName=" + mapName;
+	}
+	var $commonImpDialog = BootstrapDialog.show({
+		title : title,
+		message : function(dialog) {
+			var $message = $('<div></div>');
+			var pageToLoad = dialog.getData('pageToLoad');
+			$message.load(pageToLoad);
+			return $message;
+		},
+		data : {
+			'pageToLoad' : url
+		},
+		onshown : function(dialogRef) {
+			$("#validateBut").attr("disabled", "disabled");
+			$("#importBut").attr("disabled", "disabled");
+		},
+		size : BootstrapDialog.SIZE_NORMAL,
+		buttons : [ {
+			id : 'validateBut',
+			label : '验证数据',
+			action : function(dialogItself) {
+				var url = SYS_CONTEXT + '/common/commonImp/commonImpUploadValidate';
+				var filePath = $ge("#filePath").val();
+				var mapName = $ge("#mapName").val();
+				var data = {
+					"filePath" : filePath,
+					"mapName" : mapName
+				};
+				modelAjax({
+					type : "POST",
+					url : url,
+					dataType : 'json',
+					data : data,
+					success : function(data) {
+						var result = data.result;
+						if (result == true) {
+							notyOptions.type = "success";
+							notyOptions.text = "验证成功!";
+							$("#importBut").attr("disabled", false);
+							$("#secondBar").addClass('progress-bar-success');
+						} else {
+							var showErrorTitleText = "错误的列名 : ";
+							// 缺少的列
+							var lackList = data.lackList;
+							if (lackList != null) {
+								showErrorTitleText += "缺少列[";
+								$.each(lackList, function(i, res) {
+									showErrorTitleText += ((i == 0) ? "" : ",") + res;
+								});
+								showErrorTitleText += "] , ";
+							}
+							// 多余的列
+							var spareList = data.spareList;
+							if (spareList != null) {
+								showErrorTitleText += "多余列[";
+								$.each(spareList, function(i, res) {
+									showErrorTitleText += ((i == 0) ? "" : ",") + res;
+								});
+								showErrorTitleText += "]";
+							}
+							// 空余的数据
+							var emptyList = data.emptyList;
+							var showErrorValueText = "错误的值坐标 : ";
+							if (emptyList != null) {
+								$.each(emptyList, function(i, res) {
+									showErrorValueText += ((i == 0) ? "" : ",") + res;
+								});
+							}
+							notyOptions.type = "error";
+							notyOptions.text = "验证失败!";
+							// 第二步失败无法进行接下来的操作
+							$("#titleErrorPrompt").html(showErrorTitleText);
+							$("#valueErrorPrompt").html(showErrorValueText);
+							$("#secondBar").addClass('progress-bar-warning');
+							$("#importBut").attr("disabled", "disabled");
+						}
+						noty(notyOptions);
+					},
+					error : function() {
+						// 第二步失败无法进行接下来的操作
+						$("#secondBar").addClass('progress-bar-warning');
+						$("#importBut").attr("disabled", "disabled");
+					}
+				});
+			}
+		}, {
+			id : 'importBut',
+			label : '导入',
+			action : function(dialogItself) {
+				// 保存导入的url
+				if (saveUrl == null) {
+					saveUrl = SYS_CONTEXT + '/common/commonImp/commonImpUploadSave';
+				} else {
+					saveUrl = SYS_CONTEXT + saveUrl;
+				}
+				var filePath = $ge("#filePath").val();
+				var mapName = $ge("#mapName").val();
+				var data = {
+					"filePath" : filePath,
+					"mapName" : mapName
+				};
+				modelAjax({
+					type : "POST",
+					url : saveUrl,
+					dataType : 'json',
+					data : data,
+					success : function(dmo) {
+						if (dmo.result == SUCCESS) {
+							notyOptions.type = NOTY_SUCCESS;
+							$("#threeBar").addClass('progress-bar-success');
+							$("#importBut").attr("disabled", "disabled");
+							notyOptions.text = "导入成功!";
+						} else {
+							$("#threeBar").addClass('progress-bar-warning');
+							$("#importBut").attr("disabled", "disabled");
+							notyOptions.type = NOTY_ERROR;
+							notyOptions.text = "导入失败!";
+						}
+						noty(notyOptions);
+					},
+					error : function() {
+						// 第三步失败无法进行接下来的操作
+						$("#threeBar").addClass('progress-bar-warning');
+					}
+				});
+			}
+		}, {
+			label : '关闭',
+			action : function(dialogItself) {
+				dialogItself.close();
+			}
+		} ]
+	});
+	return $commonImpDialog;
+}
+
+/**
+ * 初始化时间控件
+ */
+function initDatePicker($form) {
+	$ge("input[role='date']", $form).each(function(i) {
+		var v_name = $(this).attr("name");
+		$(this).datetimepicker({
+			format : "YYYY-MM-DD"
+		}).on('dp.change dp.show', function(e) {
+			$form.formValidation('revalidateField', v_name);
+		});
+	});
+}
+
+/**
+ * 初始化日期控件
+ */
+function initDatePicker($form, dateFormat) {
+	if (dateFormat == "YYYY-MM-DD / HH:mm") {// 年-月-日
+		$ge("input[role = 'date']", $form).each(function(i) {
+			var v_name = $(this).attr("name");
+			$(this).datetimepicker({
+				format : dateFormat,
+				showClear : true
+			}).on('dp.change dp.show', function(e) {
+				$form.formValidation('revalidateField', v_name);
+			});
+		});
+	} else if (dateFormat == "YYYY-MM") {// 年-月
+		$ge("input[role = 'date']", $form).each(function(i) {
+			var v_name = $(this).attr("name");
+			$(this).datetimepicker({
+				format : dateFormat,
+				showClear : true
+			}).on('dp.change dp.show', function(e) {
+				$form.formValidation('revalidateField', v_name);
+			});
+		});
+	} else if (dateFormat == "YYYY-MM-DD HH:mm:ss") {// 分
+		$ge("input[role = 'date']", $form).each(function(i) {
+			var v_name = $(this).attr("name");
+			$(this).datetimepicker({
+				format : dateFormat,
+				showClear : true
+			}).on('dp.change dp.show', function(e) {
+				$form.formValidation('revalidateField', v_name);
+			});
+		});
+	} else if (dateFormat == "mm") {// 分
+		$ge("input[role = 'date']", $form).each(function(i) {
+			var v_name = $(this).attr("name");
+			$(this).datetimepicker({
+				format : dateFormat,
+				showClear : true
+			}).on('dp.change dp.show', function(e) {
+				$form.formValidation('revalidateField', v_name);
+			});
+		});
+	}
+}
+
+/**
+ * 初始化搜索选项框(改变时验证)
+ * 
+ * @param $select
+ */
+function initSelectPicker($form) {
+	$ge("select", $form).each(function(i) {
+		$(this).selectpicker().change(function() {
+			var v_name = $(this).attr("name");
+			$form.formValidation('revalidateField', v_name);
+		});
+	});
+}
+
+/**
+ * 初始化所有单，复选框(改变时验证)
+ */
+function initICheck($form) {
+	// 初始化所有的复选框
+	$form.find("input[type='checkbox'],input[type='radio']").iCheck({
+		radioClass : 'iradio_square-blue',
+		checkboxClass : 'icheckbox_square-blue',
+		labelHover : false,
+		cursor : true,
+		increaseArea : '20%' // optional
+	}).on('ifChecked', function(event) {
+		$(this).iCheck("check");
+	}).on('ifUnchecked', function(event) {
+		$(this).iCheck("uncheck");
+	}).on('ifChanged', function(e) {
+		var v_name = $(this).attr("name");
+		$form.formValidation('revalidateField', v_name);
+	}).on('ifClicked', function(event) {
+		$(this).iCheck('toggle');
+	});
+	$("input[type='radio']:checked").iCheck("check");
+	$("input[type='checkbox']:checked").iCheck("check");
+}
+
+/**
+ * 去除 第一个p标签
+ */
+function removePTag(str) {
+	var firstPStart = str.indexOf('<p>');
+	if (firstPStart > -1) {
+		str = str.substring(firstPStart + 3, str.length);
+	}
+	var firstPEnd = str.lastIndexOf('</p>');
+	if (firstPEnd > -1) {
+		str = str.substring(0, firstPEnd);
+	}
+	var lastBrEnd = str.lastIndexOf('<br>');
+	if (lastBrEnd > -1) {
+		str = str.substring(0, lastBrEnd);
+	}
+	return str;
+}
+
+/**
+ * 添加时间的0
+ * 
+ * @param {Object}
+ *            time
+ */
+function transformTimer(time) {
+	var timeStr = time.toString();
+	if (timeStr.length == 1) {
+		timeStr = "0" + timeStr;
+	}
+	return timeStr;
+}
+
+/**
+ * 获取DataTables中选中的rowId的一个map集合
+ */
+function getDataTablesSelectedIdMap($table, $map) {
+	$table.on('change', '.jhTableCheckbox', function(e) { // 单选
+		var $jhTableCheckbox = $(e.target); // 获取复选框实例
+		var $row = $jhTableCheckbox.parent().parent(); // 获取行节点实例
+		var rowData = $table.row($row).data(); // 获取选中的单行数据
+		var rowId = rowData["id"]; // 获取选中行的id值
+		if ($jhTableCheckbox.is(':checked')) { // 单选
+			$map.put(rowId, rowId); // 向集合中添加选中行的id值
+		} else { // 反选
+			$map.remove(rowId); // 从集合中删除选中行的id值
+		}
+		return $map; // 返回一个map集合
+	}).on('change', '.checkAll', function(e) { // 全选和全不选
+		var $checkAll = $(e.target); // 获取复选框实例
+		if ($checkAll.is(':checked')) { // 全选
+			var rowsData = $table.rows('.selected').data(); // 获取选中多行的数据
+			if (rowsData.length > 0) {
+				$.each(rowsData, function(i, rowData) {
+					var rowId = rowData["id"]; // 获取当前行的id
+					$map.put(rowId, rowId); // 向集合中添加选中行的id值
+				});
+			}
+		} else { // 全不选
+			var rowsData = $table.rows().data(); // 获取当前页面上的所有数据
+			$.each(rowsData, function(i, rowData) {
+				var rowId = rowData["id"]; // 获取当前行的id
+				$map.remove(rowId); // 从集合中删除当前行的id值
+			});
+		}
+		return $map; // 返回一个map集合
+	});
+	return $map; // 返回一个map集合
+}
+
+/**
+ * 点击DataTables中的上一页和下一页时显示已选中的行
+ */
+function showDataTablesSelectedRows($table, $map) {
+	var rowIdKeys = $map.keyset(); // 已选中的id键的集合
+	var $rows = $table.rows().nodes().to$(); // 当前页面所有行对象的集合
+	$.each($rows, function(i, $row) {
+		var rowData = $table.row($row).data(); // 获取行数据
+		var rowId = rowData["id"].toString(); // 获取行id
+		$.each(rowIdKeys, function(i, rowIdKey) {
+			var rowIdValue = $map.get(rowIdKey).toString(); // 获取选中行的id值
+			if (rowId === rowIdValue) { // 当前页面中有已选中的行，将该行设置为已选中状态
+				var $input = $('td:first', $row).children(":input"); // 获取当前行中的input实例
+				$input.attr("checked", "checked"); // 向当前行中的input实例中添加checked属性
+			}
+		});
+	});
+}
+
+/**
+ * 功能： selectpicker移除指定的选项<br/>
+ * 
+ * 示例： <select id="test" name="test"><br/> <option value="0">test0</option><br/>
+ * <option value="1">test1</option><br/> <option value="2">test2</option><br/>
+ * </select><br/>
+ * 
+ * 调用函数：selectpickerRemovesTheSpecifiedOption($select, "test0,test1");<br/>
+ * 
+ * 结果： <select id="test" name="test"><br/> <option value="2">test2</option><br/>
+ * </select>
+ * 
+ * @param $select:
+ *            下拉选项jquery实例<br/>
+ * @param value:
+ *            用,号分割的字符串
+ */
+function selectpickerRemovesTheSpecifiedOption($select, value) {
+	var $selectpicker = $select.selectpicker();
+	var $optionList = $selectpicker.find("option");
+	var $idArr = value.split(",");
+	$.each($optionList, function(i, $option) {
+		var $opt = $($option);
+		$.each($idArr, function(i, id) {
+			if (id == $opt.text()) {
+				$opt.remove();
+			}
+		});
+	});
+	$selectpicker.selectpicker("refresh");
+}
+
+/**
+ * selectpicker初始化选中的下拉选项<br/>
+ * 
+ * 示例： <select id="test" name="test"><br/> <option value="0">test0</option><br/>
+ * <option value="1">test1</option><br/> <option value="2">test2</option><br/>
+ * </select><br/>
+ * 
+ * 调用函数：selectpickerRemovesTheSpecifiedOption($select, "test0,test1");<br/>
+ * 
+ * 结果： <select id="test" name="test"><br/> <option value="0" selected =
+ * "selected">test0</option><br/> <option value="1" selected =
+ * "selected">test1</option><br/> <option value="2">test2</option><br/>
+ * </select><br/>
+ * 
+ * @param $select:
+ *            下拉选项jquery实例<br/>
+ * @param value:
+ *            用,号分割的字符串
+ */
+function selectpickerInitializeSelectedOption($select, value) {
+	var $selectpicker = $select.selectpicker();
+	var $optionList = $selectpicker.find("option");
+	if (value != undefined && value != "") {
+		var $idList = value.split(",");
+		$.each($optionList, function(i, $option) {
+			var $opt = $($option);
+			$.each($idList, function(i, id) {
+				if (id == $opt.val()) {
+					$opt.attr("selected", "selected");
+				}
+			});
+		});
+		$selectpicker.selectpicker("refresh");
+	}
+	if ($select.selectpicker().parent().find(">div").find(">button").find(">span").text() == "Nothing selected") {
+		$select.parent().find(">div").find(">button").find(">span").eq(0).text("请选择");
+	}
+}
+	function getMessage(mess){
+		 messDialog=BootstrapDialog.show({
+				title : "信息提示",
+				message: '<div align="center"><h4>'+mess+'</h4></div>',
+				size: BootstrapDialog.SIZE_NORMAL,
+				buttons : [
+							{
+								label : '关闭',
+								cssClass : 'btn-warning',
+								action : function(dialogItself) {
+									dialogItself.close();
+								}
+				}]
+		 });
+}
+	/**
+	 * 弹出式提示框，默认1.2秒自动消失
+	 * @param message 提示信息
+	 * @param style 提示样式，有alert-success、alert-danger、alert-warning、alert-info
+	 * @param time 消失时间
+	 */
+	var prompt = function (message, style, time)
+	{
+	    style = (style === undefined) ? 'alert-success' : style;
+	    time = (time === undefined) ? 1200 : time;
+	    $('<div>')
+	        .appendTo('body')
+	        .addClass('alert ' + style)
+	        .html(message)
+	        .show()
+	        .delay(time)
+	        .fadeOut();
+	};
+
+	// 成功提示
+	var success_prompt = function(message, time)
+	{
+	    prompt(message, 'alert-success', time);
+	};
+
+	// 失败提示
+	var fail_prompt = function(message, time)
+	{
+	    prompt(message, 'alert-danger', time);
+	};
+
+	// 提醒
+	var warning_prompt = function(message, time)
+	{
+	    prompt(message, 'alert-warning', time);
+	};
+
+	// 信息提示
+	var info_prompt = function(message, time)
+	{
+	    prompt(message, 'alert-info', time);
+	};
