@@ -35,23 +35,18 @@
 - [ehall 网上办事服务大厅](https://ehall.fudan.edu.cn/ywtb-portal/fudan/index.html#/hall)
 - [统一身份认证平台](https://uis.fudan.edu.cn/authserver/login)
 
+## 邮箱
+
+- [微信企业邮箱添加至 Windows 邮箱客户端\_柏雁的博客-CSDN 博客](https://blog.csdn.net/qq_18427785/article/details/127666491) | [windows10/win11 自带邮箱添加 QQ 邮箱问题 - 知乎](https://zhuanlan.zhihu.com/p/567873303), 将二者结合
+
 ## 生活
 
-- 通勤: https://mp.weixin.qq.com/s/9cPApHSqlOvynRzF52FmfQ | 842 路公交车
-- [爱久指南丨生活与出行攻略](https://mp.weixin.qq.com/s/0EiWoQtT9KlGCATYWDnY0Q)
-- [爱久指南丨新生报到攻略](https://mp.weixin.qq.com/s/QBbLs5BQ4y1MUnXna3MLYw)
 - [科研青年去哪里 | 最新招聘信息汇总(8.15-8.21)](https://mp.weixin.qq.com/s/fWaOTK7YedXCfjrbR53W7Q)
 - [耗时 23 天，我们做了一份超全的新生攻略！](https://mp.weixin.qq.com/s/266UtIxE3X8COkuzEKlGgw)
 - [新生攻略 ① | 「计需找房」租房攻略大合集！](https://mp.weixin.qq.com/s/kdg0LiOr1cAx1zqBCcZ2gQ)
 - [新生攻略 ② | 关于“跨学科补修&英语免修”](https://mp.weixin.qq.com/s/8Yv1ZgZxBvRVO9qwGQtozg)
 - [新生攻略 ③ | 关于“校医院&大学生医保”](https://mp.weixin.qq.com/s/L7ZWO2S5ShG5OIyuScdcmQ)
-
-### 快递
-
-- 爱久公寓:
-
-  - 所在地区: 上海上海市杨浦区殷行街道
-  - 详细地址: 国伟路 300 号爱久家园爱久公寓 E 栋
+- [困难生](https://yzsfwapp.fudan.edu.cn/ygapp/sys/yjsknsappfudan/*default/index.do#/difficulties)
 
 ## 课表
 
