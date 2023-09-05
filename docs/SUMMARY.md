@@ -1,3 +1,4 @@
 - [:boat:](/docs/README.md)
 - [爱久](/docs/aijiu.md)
-- [food](/docs/food.md)
+- [事物](/docs/food.md)
+- [公开生活](/docs/public.md)

@@ -35,6 +35,8 @@
 - [ehall 网上办事服务大厅](https://ehall.fudan.edu.cn/ywtb-portal/fudan/index.html#/hall)
 - [统一身份认证平台](https://uis.fudan.edu.cn/authserver/login)
 
+![](assets/2023-09-05-15-24-37.png)
+
 ## 邮箱
 
 - [微信企业邮箱添加至 Windows 邮箱客户端\_柏雁的博客-CSDN 博客](https://blog.csdn.net/qq_18427785/article/details/127666491) | [windows10/win11 自带邮箱添加 QQ 邮箱问题 - 知乎](https://zhuanlan.zhihu.com/p/567873303), 将二者结合
@@ -57,6 +59,16 @@
 <iframe class="Pages" src="./assets/course/index.html" width="100%" height="500" frameborder="0" allowfullscreen="true"></iframe>
 
 - H: 邯郸校区/HGX:邯郸校区光华楼西
+
+## 图书馆
+
+- [新生教育课件下载](http://www.library.fudan.edu.cn/2021/0831/c29a162694/page.htm) 里面有关于图书馆如何使用的介绍
+
+![](assets/2023-09-05-15-23-17.png)
+
+![](assets/2023-09-05-15-24-03.png)
+
+![](assets/2023-09-05-15-24-20.png)
 
 ## local
 
