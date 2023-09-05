@@ -1,2 +1,3 @@
 - [:boat:](/docs/README.md)
 - [爱久](/docs/aijiu.md)
+- [food](/docs/food.md)
